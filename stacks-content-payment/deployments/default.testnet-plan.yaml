@@ -1,0 +1,53 @@
+---
+id: 0
+name: Testnet deployment
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "http://blockstack:blockstacksystem@bitcoind.testnet.stacks.co:18332"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: content-registry
+            expected-sender: ST34SWDZ8QJEB124ZBEVN6A69DDVQXNVH66AJKY65
+            cost: 68990
+            path: "contracts\\content-registry.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: access-control
+            expected-sender: ST34SWDZ8QJEB124ZBEVN6A69DDVQXNVH66AJKY65
+            cost: 60010
+            path: "contracts\\access-control.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: content-trait
+            expected-sender: ST34SWDZ8QJEB124ZBEVN6A69DDVQXNVH66AJKY65
+            cost: 4830
+            path: "contracts\\traits\\content-trait.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: sip-010-trait
+            expected-sender: ST34SWDZ8QJEB124ZBEVN6A69DDVQXNVH66AJKY65
+            cost: 7930
+            path: "contracts\\traits\\sip-010-trait.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: mock-usdc
+            expected-sender: ST34SWDZ8QJEB124ZBEVN6A69DDVQXNVH66AJKY65
+            cost: 22510
+            path: "contracts\\mock-usdc.clar"
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: payment-handler
+            expected-sender: ST34SWDZ8QJEB124ZBEVN6A69DDVQXNVH66AJKY65
+            cost: 55040
+            path: "contracts\\payment-handler.clar"
+            anchor-block-only: true
+            clarity-version: 2
+      epoch: "2.5"
