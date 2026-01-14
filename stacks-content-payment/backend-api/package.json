@@ -11,7 +11,12 @@
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.ts"
   },
-  "keywords": ["stacks", "blockchain", "content", "payment"],
+  "keywords": [
+    "stacks",
+    "blockchain",
+    "content",
+    "payment"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
