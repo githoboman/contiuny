@@ -1,0 +1,12 @@
+{
+    "name": "Stacks Content Payment",
+    "start_url": "/",
+    "description": "Decentralized content payment platform on Stacks blockchain",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
