@@ -23,7 +23,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         // Check if wallet is already connected
         const checkConnection = async () => {
             // Handle pending sign-in (after wallet redirect)
-            if (stacks.userSession.isSignInPending()) {
+            if (stacks.userSession?.isSignInPending()) {
                 try {
                     await stacks.userSession.handlePendingSignIn();
                     const address = stacks.getAddress();

@@ -121,7 +121,6 @@ describe("SIP-010 Token Payment Tests", () => {
         });
 
         it("should process token payment successfully", () => {
-            const tokenContract = `${deployer}.mock-usdc`;
 
             const result = simnet.callPublicFn(
                 "payment-handler",
@@ -137,7 +136,6 @@ describe("SIP-010 Token Payment Tests", () => {
         });
 
         it("should transfer tokens to creator", () => {
-            const tokenContract = `${deployer}.mock-usdc`;
 
             // Get balances before
             const creatorBalanceBefore = simnet.callReadOnlyFn(
@@ -181,11 +179,12 @@ describe("SIP-010 Token Payment Tests", () => {
             );
 
             // Verify transfer - extract uint from (ok uint) responses
-            // get-balance returns (ok uint), so we need .value.value
-            const creatorBefore = (creatorBalanceBefore.result as any).value;
-            const creatorAfter = (creatorBalanceAfter.result as any).value;
-            const userBefore = (userBalanceBefore.result as any).value;
-            const userAfter = (userBalanceAfter.result as any).value;
+            // get-balance returns (ok uint), extract the bigint value directly
+            // The result structure is: { type: 'ok', value: { type: 'uint', value: bigint } }
+            const creatorBefore = (creatorBalanceBefore.result as any).value.value;
+            const creatorAfter = (creatorBalanceAfter.result as any).value.value;
+            const userBefore = (userBalanceBefore.result as any).value.value;
+            const userAfter = (userBalanceAfter.result as any).value.value;
 
             // Verify creator received 5 USDC and user paid 5 USDC
             expect(creatorAfter - creatorBefore).toBe(5000000n);
@@ -193,7 +192,6 @@ describe("SIP-010 Token Payment Tests", () => {
         });
 
         it("should grant access after token payment", () => {
-            const tokenContract = `${deployer}.mock-usdc`;
 
             simnet.callPublicFn(
                 "payment-handler",
@@ -216,7 +214,6 @@ describe("SIP-010 Token Payment Tests", () => {
         });
 
         it("should prevent duplicate token payment", () => {
-            const tokenContract = `${deployer}.mock-usdc`;
 
             // First payment
             simnet.callPublicFn(
@@ -286,7 +283,6 @@ describe("SIP-010 Token Payment Tests", () => {
         });
 
         it("should create payment receipt for token payment", () => {
-            const tokenContract = `${deployer}.mock-usdc`;
 
             simnet.callPublicFn(
                 "payment-handler",
@@ -350,7 +346,6 @@ describe("SIP-010 Token Payment Tests", () => {
         });
 
         it("should handle multiple users paying with tokens", () => {
-            const tokenContract = `${deployer}.mock-usdc`;
 
             // User 1 pays
             const result1 = simnet.callPublicFn(
@@ -397,7 +392,6 @@ describe("SIP-010 Token Payment Tests", () => {
         });
 
         it("should handle user purchasing multiple content with tokens", () => {
-            const tokenContract = `${deployer}.mock-usdc`;
 
             // Pay for content 1
             const result1 = simnet.callPublicFn(
