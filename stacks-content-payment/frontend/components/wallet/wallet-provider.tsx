@@ -21,15 +21,32 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // Check if wallet is already connected
-        if (stacks.isConnected()) {
-            const address = stacks.getAddress();
-            if (address) {
-                setWalletState(prev => ({ ...prev, address, isConnected: true }));
-                stacks.getBalance(address).then(balance => {
-                    setWalletState(prev => ({ ...prev, balance }));
-                });
+        const checkConnection = async () => {
+            // Handle pending sign-in (after wallet redirect)
+            if (stacks.userSession.isSignInPending()) {
+                try {
+                    await stacks.userSession.handlePendingSignIn();
+                    const address = stacks.getAddress();
+                    if (address) {
+                        setWalletState({ address, isConnected: true, balance: 0 });
+                        const balance = await stacks.getBalance(address);
+                        setWalletState(prev => ({ ...prev, balance }));
+                    }
+                } catch (error) {
+                    console.error('Error handling pending sign-in:', error);
+                }
+            } else if (stacks.isConnected()) {
+                const address = stacks.getAddress();
+                if (address) {
+                    setWalletState(prev => ({ ...prev, address, isConnected: true }));
+                    stacks.getBalance(address).then(balance => {
+                        setWalletState(prev => ({ ...prev, balance }));
+                    });
+                }
             }
-        }
+        };
+
+        checkConnection();
     }, []);
 
     const connect = async () => {

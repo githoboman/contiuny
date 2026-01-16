@@ -1,6 +1,6 @@
-// Stacks blockchain utilities
+// Stacks blockchain utilities - Xverse wallet connection
 
-import { connect, AppConfig, UserSession, disconnect } from '@stacks/connect';
+import { AppConfig, UserSession } from '@stacks/connect';
 import { STACKS_TESTNET, STACKS_MAINNET, StacksNetwork } from '@stacks/network';
 import {
     makeContractCall,
@@ -19,48 +19,61 @@ const network: StacksNetwork = process.env.NEXT_PUBLIC_NETWORK === 'mainnet'
     : STACKS_TESTNET;
 
 export const stacks = {
-    // Wallet connection using connect function
+    userSession,
+
+    // Xverse wallet connection
     connectWallet: async () => {
         try {
+            console.log('Starting wallet connection...');
+
             // Check if already signed in
             if (userSession.isUserSignedIn()) {
+                console.log('User already signed in');
                 const userData = userSession.loadUserData();
-                return userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
+                const address = userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
+                console.log('Existing address:', address);
+                return address;
             }
 
-            // Check if there's a pending sign in (after redirect)
+            // Check if there's a pending sign in
             if (userSession.isSignInPending()) {
+                console.log('Handling pending sign in...');
                 await userSession.handlePendingSignIn();
                 const userData = userSession.loadUserData();
-                return userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
+                const address = userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
+                console.log('Address after pending sign in:', address);
+                return address;
             }
 
-            // Initiate new connection
-            return new Promise<string>((resolve, reject) => {
-                connect({
-                    appDetails: {
-                        name: 'Stacks Content Payment',
-                        icon: typeof window !== 'undefined' ? window.location.origin + '/logo.png' : '/logo.png',
-                    },
-                    onFinish: (payload) => {
-                        // The user has successfully authenticated
-                        // We need to wait a bit for the session to be established
-                        setTimeout(() => {
-                            if (userSession.isUserSignedIn()) {
-                                const userData = userSession.loadUserData();
-                                const address = userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
-                                resolve(address);
-                            } else {
-                                reject(new Error('Authentication completed but session not established'));
-                            }
-                        }, 500);
-                    },
-                    onCancel: () => {
-                        reject(new Error('User cancelled connection'));
-                    },
-                    userSession,
-                });
-            });
+            // Try Xverse wallet
+            if (typeof window !== 'undefined') {
+                const win = window as any;
+
+                if (win.XverseProviders?.StacksProvider) {
+                    console.log('Xverse wallet detected');
+                    try {
+                        const provider = win.XverseProviders.StacksProvider;
+
+                        // Xverse uses getAddresses() method
+                        const response = await provider.getAddresses();
+                        console.log('Xverse response:', response);
+
+                        if (response && response.addresses && response.addresses.length > 0) {
+                            const address = response.addresses[0].address;
+                            console.log('Connected via Xverse:', address);
+                            localStorage.setItem('wallet_address', address);
+                            return address;
+                        }
+                    } catch (error: any) {
+                        console.error('Xverse connection error:', error);
+                        // If user cancelled or error, throw a user-friendly message
+                        if (error.message?.includes('User rejected')) {
+                            throw new Error('Connection cancelled by user');
+                        }
+                    }
+                }
+            }
+            throw new Error('Please install Xverse wallet extension');
         } catch (error) {
             console.error('Wallet connection error:', error);
             throw error;
@@ -68,18 +81,20 @@ export const stacks = {
     },
 
     disconnectWallet: () => {
-        disconnect();
         userSession.signUserOut();
+        localStorage.removeItem('wallet_address');
     },
 
     isConnected: (): boolean => {
-        return userSession.isUserSignedIn();
+        return userSession.isUserSignedIn() || !!localStorage.getItem('wallet_address');
     },
 
     getAddress: (): string | null => {
-        if (!userSession.isUserSignedIn()) return null;
-        const userData = userSession.loadUserData();
-        return userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
+        if (userSession.isUserSignedIn()) {
+            const userData = userSession.loadUserData();
+            return userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
+        }
+        return localStorage.getItem('wallet_address');
     },
 
     // Payment functions
@@ -103,8 +118,6 @@ export const stacks = {
             },
         };
 
-        // This would use @stacks/connect's openContractCall
-        // For now, return a placeholder
         return 'tx-placeholder';
     },
 
@@ -128,14 +141,13 @@ export const stacks = {
             },
         };
 
-        // This would use @stacks/connect's openContractCall
         return 'tx-placeholder';
     },
 
     // Get STX balance
     async getBalance(address: string): Promise<number> {
         try {
-            const apiUrl = network.coreApiUrl || 'https://api.testnet.hiro.so';
+            const apiUrl = (network as any).coreApiUrl || 'https://api.testnet.hiro.so';
 
             const response = await fetch(`${apiUrl}/extended/v1/address/${address}/balances`);
             const data = await response.json();
@@ -148,7 +160,7 @@ export const stacks = {
 
     // Monitor transaction
     async getTransactionStatus(txId: string): Promise<any> {
-        const apiUrl = network.coreApiUrl || 'https://api.testnet.hiro.so';
+        const apiUrl = (network as any).coreApiUrl || 'https://api.testnet.hiro.so';
 
         const response = await fetch(`${apiUrl}/extended/v1/tx/${txId}`);
         return response.json();
