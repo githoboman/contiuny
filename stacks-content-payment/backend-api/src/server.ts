@@ -1,13 +1,25 @@
+// Load environment variables FIRST, before any other imports
+import dotenv from 'dotenv';
+import path from 'path';
+
+const envPath = path.resolve(__dirname, '../.env');
+console.log('Loading .env from:', envPath);
+const result = dotenv.config({ path: envPath });
+if (result.error) {
+    console.error('Error loading .env file:', result.error);
+} else {
+    console.log('✓ .env file loaded successfully');
+    console.log('PINATA_JWT exists:', !!process.env.PINATA_JWT);
+}
+
+// Now import everything else
 import express, { Application } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import contentRoutes from './routes/content.routes';
 import paymentRoutes from './routes/payment.routes';
+import uploadRoutes from './routes/upload.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import { apiLimiter } from './middleware/rateLimit.middleware';
-
-// Load environment variables
-dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +71,7 @@ app.get('/api', (req, res) => {
 // API Routes
 app.use('/api/content', contentRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Error handling
 app.use(notFoundHandler);

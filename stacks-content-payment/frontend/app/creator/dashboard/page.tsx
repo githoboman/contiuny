@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useWallet } from '@/components/wallet/wallet-provider';
 import { api } from '@/lib/api';
+import { FileUpload } from '@/components/content/file-upload';
 
 export default function CreatorDashboard() {
     const { address, isConnected } = useWallet();
@@ -97,6 +98,33 @@ export default function CreatorDashboard() {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* File Upload Section */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Upload Content File
+                            </label>
+                            <FileUpload
+                                onUploadComplete={(ipfsHash, gatewayUrl) => {
+                                    setFormData({ ...formData, ipfsHash });
+                                    setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
+                                }}
+                                maxSize={100}
+                            />
+                            <p className="mt-2 text-sm text-gray-500">
+                                Upload your content file and we'll automatically pin it to IPFS
+                            </p>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white text-gray-500">OR enter IPFS hash manually</span>
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 IPFS Hash *

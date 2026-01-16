@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ContentService } from '../services/contentService';
 import { ApiResponse, PaginatedResponse, ContentInfo } from '../types';
+import { validateContentRegistration } from '../middleware/validation.middleware';
 
 const router = Router();
 const contentService = new ContentService();
@@ -9,7 +10,7 @@ const contentService = new ContentService();
  * POST /api/content
  * Register new content
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validateContentRegistration, async (req: Request, res: Response) => {
     try {
         const { creator, ipfsHash, priceStx, priceToken, tokenContract, metadataUri } = req.body;
 

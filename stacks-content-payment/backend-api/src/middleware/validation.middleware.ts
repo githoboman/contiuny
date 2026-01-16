@@ -8,29 +8,82 @@ export const validateContentRegistration = (
     res: Response,
     next: NextFunction
 ) => {
-    const { creator, ipfsHash, priceStx, metadataUri } = req.body;
+    const { creator, ipfsHash, priceStx, priceToken, tokenContract, metadataUri } = req.body;
 
     const errors: string[] = [];
 
+    // Validate creator
     if (!creator || typeof creator !== 'string') {
         errors.push('creator must be a valid string');
+    } else if (!isValidStacksAddress(creator)) {
+        errors.push('creator must be a valid Stacks address');
     }
 
+    // Validate IPFS hash
     if (!ipfsHash || typeof ipfsHash !== 'string') {
         errors.push('ipfsHash must be a valid string');
+    } else if (!validateIpfsHash(ipfsHash)) {
+        errors.push('ipfsHash must be a valid IPFS hash (starts with Qm or bafy)');
     }
 
+    // Validate STX price with range checks
     if (!priceStx || typeof priceStx !== 'number' || priceStx <= 0) {
         errors.push('priceStx must be a positive number');
+    } else {
+        // Business logic: Set reasonable price limits (in micro-STX)
+        const MIN_PRICE_MICRO_STX = 100_000; // 0.1 STX minimum
+        const MAX_PRICE_MICRO_STX = 1_000_000_000_000; // 1,000,000 STX maximum
+
+        if (priceStx < MIN_PRICE_MICRO_STX) {
+            errors.push(`priceStx must be at least ${MIN_PRICE_MICRO_STX / 1_000_000} STX (${MIN_PRICE_MICRO_STX} micro-STX)`);
+        }
+
+        if (priceStx > MAX_PRICE_MICRO_STX) {
+            errors.push(`priceStx cannot exceed ${MAX_PRICE_MICRO_STX / 1_000_000} STX (${MAX_PRICE_MICRO_STX} micro-STX)`);
+        }
     }
 
+    // Validate metadata URI
     if (!metadataUri || typeof metadataUri !== 'string') {
         errors.push('metadataUri must be a valid string');
+    } else {
+        try {
+            new URL(metadataUri);
+        } catch {
+            errors.push('metadataUri must be a valid URL');
+        }
     }
 
-    // Validate Stacks address format (basic)
-    if (creator && !isValidStacksAddress(creator)) {
-        errors.push('creator must be a valid Stacks address');
+    // Validate token pricing if provided
+    if (priceToken !== undefined || tokenContract !== undefined) {
+        // Both must be provided together
+        if (!priceToken || !tokenContract) {
+            errors.push('Both priceToken and tokenContract must be provided together');
+        } else {
+            // Validate token price
+            if (typeof priceToken !== 'number' || priceToken <= 0) {
+                errors.push('priceToken must be a positive number');
+            } else {
+                // Token price limits (assuming 6 decimals like USDC)
+                const MIN_TOKEN_PRICE = 10_000; // $0.01 minimum
+                const MAX_TOKEN_PRICE = 1_000_000_000_000; // $1,000,000 maximum
+
+                if (priceToken < MIN_TOKEN_PRICE) {
+                    errors.push(`priceToken must be at least $${MIN_TOKEN_PRICE / 1_000_000}`);
+                }
+
+                if (priceToken > MAX_TOKEN_PRICE) {
+                    errors.push(`priceToken cannot exceed $${MAX_TOKEN_PRICE / 1_000_000}`);
+                }
+            }
+
+            // Validate token contract
+            if (typeof tokenContract !== 'string') {
+                errors.push('tokenContract must be a valid string');
+            } else if (!isValidContractId(tokenContract)) {
+                errors.push('tokenContract must be a valid contract identifier (address.contract-name)');
+            }
+        }
     }
 
     if (errors.length > 0) {
@@ -156,9 +209,12 @@ function isValidContractId(contractId: string): boolean {
  * Validate IPFS hash format
  */
 export const validateIpfsHash = (hash: string): boolean => {
-    // Basic validation for IPFS CIDv0 (Qm...)
-    const ipfsHashRegex = /^Qm[1-9A-HJ-NP-Za-km-z]{44}$/;
-    return ipfsHashRegex.test(hash);
+    // CIDv0 format (Qm...)
+    const ipfsHashV0Regex = /^Qm[1-9A-HJ-NP-Za-km-z]{44}$/;
+    // CIDv1 format (bafy...)
+    const ipfsHashV1Regex = /^bafy[a-z0-9]{50,}$/;
+
+    return ipfsHashV0Regex.test(hash) || ipfsHashV1Regex.test(hash);
 };
 
 /**

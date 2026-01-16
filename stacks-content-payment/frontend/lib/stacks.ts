@@ -38,7 +38,7 @@ export const stacks = {
         return getUserSession();
     },
 
-    // WBIP004 compliant wallet connection
+    // Connect wallet using @stacks/connect
     connectWallet: async () => {
         try {
             console.log('Starting wallet connection...');
@@ -67,77 +67,48 @@ export const stacks = {
                 return address;
             }
 
-            // Check for stored address
-            const storedAddress = localStorage.getItem('wallet_address');
-            if (storedAddress) {
-                console.log('Using stored address:', storedAddress);
-                return storedAddress;
-            }
+            // Use new @stacks/connect API
+            const { connect, isConnected } = await import('@stacks/connect');
 
-            // Use WBIP004 standard - check window.wbip_providers
-            if (typeof window !== 'undefined') {
-                const win = window as any;
-
-                // Check if any wallets are registered
-                const providers = win.wbip_providers || [];
-                console.log('Available wallet providers:', providers);
-
-                if (providers.length > 0) {
-                    // Get the first available wallet provider
-                    const walletProvider = providers[0];
-                    console.log('Using wallet:', walletProvider.name);
-
-                    // Get the actual provider object from window
-                    const provider = win[walletProvider.id];
-
-                    if (provider && provider.request) {
-                        console.log('Calling stx_getAddresses...');
-
-                        // Use the correct RPC method: stx_getAddresses
-                        const response = await provider.request('stx_getAddresses', {
-                            network: 'testnet'
-                        });
-
-                        console.log('Wallet response:', response);
-
-                        // Response should have result.addresses array
-                        if (response && response.result && response.result.addresses) {
-                            const addresses = response.result.addresses;
-                            // Find the STX address
-                            const stxAddress = addresses.find((addr: any) => addr.symbol === 'STX');
-
-                            if (stxAddress && stxAddress.address) {
-                                const address = stxAddress.address;
-                                console.log('Connected address:', address);
-                                localStorage.setItem('wallet_address', address);
-                                return address;
-                            }
-                        }
-                    }
+            // Check if already connected
+            if (isConnected()) {
+                console.log('Already connected via @stacks/connect');
+                const { getLocalStorage } = await import('@stacks/connect');
+                const userData = getLocalStorage();
+                if (userData?.addresses?.stx?.[0]?.address) {
+                    const address = userData.addresses.stx[0].address;
+                    console.log('Connected address:', address);
+                    return address;
                 }
             }
 
-            // Fallback: manual input
-            console.log('No wallet detected, using manual input');
-            const address = prompt('Please enter your Stacks testnet address (starts with ST):');
-            if (address && address.startsWith('ST')) {
-                localStorage.setItem('wallet_address', address);
-                console.log('Manually entered address:', address);
+            // Connect to wallet
+            console.log('Connecting to wallet...');
+            const response = await connect();
+
+            if (response?.addresses?.stx?.[0]?.address) {
+                const address = response.addresses.stx[0].address;
+                console.log('Connected address:', address);
                 return address;
             }
 
-            throw new Error('Please install a Stacks wallet or enter a valid address');
+            throw new Error('Failed to get address from wallet');
         } catch (error) {
             console.error('Wallet connection error:', error);
             throw error;
         }
     },
 
-    disconnectWallet: () => {
+    disconnectWallet: async () => {
         const session = getUserSession();
         if (session) {
             session.signUserOut();
         }
+
+        // Also disconnect via @stacks/connect
+        const { disconnect } = await import('@stacks/connect');
+        disconnect();
+
         if (typeof window !== 'undefined') {
             localStorage.removeItem('wallet_address');
         }
@@ -146,7 +117,22 @@ export const stacks = {
     isConnected: (): boolean => {
         const session = getUserSession();
         if (typeof window === 'undefined') return false;
-        return (session?.isUserSignedIn() || false) || !!localStorage.getItem('wallet_address');
+
+        // Check UserSession
+        if (session?.isUserSignedIn()) return true;
+
+        // Check @stacks/connect (synchronous check via localStorage)
+        try {
+            const stored = localStorage.getItem('stacks-connect-storage');
+            if (stored) {
+                const data = JSON.parse(stored);
+                return !!data?.addresses?.stx?.[0]?.address;
+            }
+        } catch (e) {
+            // Ignore parse errors
+        }
+
+        return false;
     },
 
     getAddress: (): string | null => {
@@ -155,8 +141,21 @@ export const stacks = {
             const userData = session.loadUserData();
             return userData.profile.stxAddress.testnet || userData.profile.stxAddress.mainnet;
         }
-        if (typeof window === 'undefined') return null;
-        return localStorage.getItem('wallet_address');
+
+        // Check @stacks/connect storage
+        if (typeof window !== 'undefined') {
+            try {
+                const stored = localStorage.getItem('stacks-connect-storage');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    return data?.addresses?.stx?.[0]?.address || null;
+                }
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+
+        return null;
     },
 
     // Payment functions
@@ -167,20 +166,27 @@ export const stacks = {
         const contractAddress = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[0] || '';
         const contractName = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[1] || 'payment-handler';
 
-        const txOptions = {
-            contractAddress,
-            contractName,
-            functionName: 'pay-for-content-stx',
-            functionArgs: [uintCV(contentId)],
-            network,
-            anchorMode: AnchorMode.Any,
-            postConditionMode: PostConditionMode.Allow,
-            onFinish: (data: any) => {
-                return data.txId;
-            },
-        };
+        // Import openContractCall dynamically to avoid SSR issues
+        const { openContractCall } = await import('@stacks/connect');
 
-        return 'tx-placeholder';
+        return new Promise((resolve, reject) => {
+            openContractCall({
+                contractAddress,
+                contractName,
+                functionName: 'pay-for-content-stx',
+                functionArgs: [uintCV(contentId)],
+                network,
+                anchorMode: AnchorMode.Any,
+                postConditionMode: PostConditionMode.Allow,
+                onFinish: (data) => {
+                    console.log('STX payment transaction submitted:', data.txId);
+                    resolve(data.txId);
+                },
+                onCancel: () => {
+                    reject(new Error('Transaction cancelled by user'));
+                },
+            });
+        });
     },
 
     async payWithToken(contentId: number, tokenContract: string): Promise<string> {
@@ -190,20 +196,33 @@ export const stacks = {
         const contractAddress = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[0] || '';
         const contractName = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[1] || 'payment-handler';
 
-        const txOptions = {
-            contractAddress,
-            contractName,
-            functionName: 'pay-for-content-token',
-            functionArgs: [uintCV(contentId), principalCV(tokenContract)],
-            network,
-            anchorMode: AnchorMode.Any,
-            postConditionMode: PostConditionMode.Allow,
-            onFinish: (data: any) => {
-                return data.txId;
-            },
-        };
+        // Parse token contract address
+        const [tokenAddr, tokenName] = tokenContract.split('.');
 
-        return 'tx-placeholder';
+        // Import openContractCall dynamically to avoid SSR issues
+        const { openContractCall } = await import('@stacks/connect');
+
+        return new Promise((resolve, reject) => {
+            openContractCall({
+                contractAddress,
+                contractName,
+                functionName: 'pay-for-content-token',
+                functionArgs: [
+                    uintCV(contentId),
+                    principalCV(tokenContract)
+                ],
+                network,
+                anchorMode: AnchorMode.Any,
+                postConditionMode: PostConditionMode.Allow, // Token transfers need this
+                onFinish: (data) => {
+                    console.log('Token payment transaction submitted:', data.txId);
+                    resolve(data.txId);
+                },
+                onCancel: () => {
+                    reject(new Error('Transaction cancelled by user'));
+                },
+            });
+        });
     },
 
     // Get STX balance
