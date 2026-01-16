@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useWallet } from '@/components/wallet/wallet-provider';
 import { api } from '@/lib/api';
 import { FileUpload } from '@/components/content/file-upload';
+import { MetadataForm } from '@/components/content/metadata-form';
 
 export default function CreatorDashboard() {
     const { address, isConnected } = useWallet();
@@ -159,6 +160,24 @@ export default function CreatorDashboard() {
                             <p className="mt-1 text-sm text-gray-500">
                                 Price in STX (e.g., 1.00 for 1 STX)
                             </p>
+                        </div>
+
+                        {/* Metadata Generation */}
+                        <MetadataForm
+                            onMetadataGenerated={(metadataUri) => {
+                                setFormData({ ...formData, metadataUri });
+                                setSuccess('Metadata generated and uploaded to IPFS!');
+                            }}
+                        />
+
+                        {/* Divider */}
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white text-gray-500">OR enter metadata URI manually</span>
+                            </div>
                         </div>
 
                         <div>

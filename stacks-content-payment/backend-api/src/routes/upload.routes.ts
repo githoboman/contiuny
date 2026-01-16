@@ -86,22 +86,37 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
 
 /**
  * POST /api/upload/metadata
- * Upload JSON metadata to IPFS
+ * Upload content metadata JSON to IPFS
  */
 router.post('/metadata', async (req: Request, res: Response) => {
     try {
-        const { metadata, name } = req.body;
+        const { title, description, author, category, contentType, tags, thumbnail } = req.body;
 
-        if (!metadata) {
+        // Validate required fields
+        if (!title || !description) {
             return res.status(400).json({
                 success: false,
-                error: 'No metadata provided'
+                error: 'Title and description are required'
             } as ApiResponse<null>);
         }
 
+        // Create metadata object
+        const metadata = {
+            title,
+            description,
+            author: author || 'Anonymous',
+            category: category || 'Uncategorized',
+            contentType: contentType || 'article',
+            tags: tags || [],
+            thumbnail: thumbnail || '',
+            publishedDate: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        // Upload to IPFS
         const ipfsHash = await uploadService.uploadJSONToIPFS(
             metadata,
-            name || 'metadata'
+            `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-metadata`
         );
 
         const gatewayUrl = uploadService.getGatewayURL(ipfsHash);
@@ -110,12 +125,14 @@ router.post('/metadata', async (req: Request, res: Response) => {
             success: true,
             data: {
                 ipfsHash,
-                gatewayUrl
+                gatewayUrl,
+                metadata
             },
             message: 'Metadata uploaded to IPFS successfully'
         } as ApiResponse<{
             ipfsHash: string;
             gatewayUrl: string;
+            metadata: any;
         }>);
     } catch (error) {
         res.status(500).json({
