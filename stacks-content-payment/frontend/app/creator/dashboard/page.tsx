@@ -5,6 +5,8 @@ import { useWallet } from '@/components/wallet/wallet-provider';
 import { api } from '@/lib/api';
 import { FileUpload } from '@/components/content/file-upload';
 import { MetadataForm } from '@/components/content/metadata-form';
+import { BridgeHelper } from '@/components/bridge/bridge-helper';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function CreatorDashboard() {
     const { address, isConnected } = useWallet();
@@ -13,7 +15,7 @@ export default function CreatorDashboard() {
         priceStx: '',
         metadataUri: '',
         priceToken: '',
-        tokenContract: process.env.NEXT_PUBLIC_MOCK_USDC || '',
+        tokenContract: process.env.NEXT_PUBLIC_USDCX_ADDRESS || process.env.NEXT_PUBLIC_MOCK_USDC || '',
     });
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
@@ -83,167 +85,180 @@ export default function CreatorDashboard() {
             <div className="max-w-2xl mx-auto">
                 <h1 className="text-4xl font-bold mb-8">Creator Dashboard</h1>
 
-                <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h2 className="text-2xl font-bold mb-6">Register New Content</h2>
+                <Tabs defaultValue="register" className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="register">Register Content</TabsTrigger>
+                        <TabsTrigger value="bridge">Bridge USDCx</TabsTrigger>
+                    </TabsList>
 
-                    {success && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <p className="text-green-800 font-medium">{success}</p>
-                        </div>
-                    )}
+                    <TabsContent value="bridge">
+                        <BridgeHelper />
+                    </TabsContent>
 
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-red-800">{error}</p>
-                        </div>
-                    )}
+                    <TabsContent value="register">
+                        <div className="bg-white rounded-lg shadow-lg p-8">
+                            <h2 className="text-2xl font-bold mb-6">Register New Content</h2>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* File Upload Section */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Upload Content File
-                            </label>
-                            <FileUpload
-                                onUploadComplete={(ipfsHash, gatewayUrl) => {
-                                    setFormData({ ...formData, ipfsHash });
-                                    setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
-                                }}
-                                maxSize={100}
-                            />
-                            <p className="mt-2 text-sm text-gray-500">
-                                Upload your content file and we'll automatically pin it to IPFS
-                            </p>
-                        </div>
+                            {success && (
+                                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                    <p className="text-green-800 font-medium">{success}</p>
+                                </div>
+                            )}
 
-                        {/* Divider */}
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500">OR enter IPFS hash manually</span>
-                            </div>
-                        </div>
+                            {error && (
+                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-red-800">{error}</p>
+                                </div>
+                            )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                IPFS Hash *
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.ipfsHash}
-                                onChange={(e) => setFormData({ ...formData, ipfsHash: e.target.value })}
-                                placeholder="QmTest123..."
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <p className="mt-1 text-sm text-gray-500">
-                                The IPFS hash of your content
-                            </p>
-                        </div>
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                {/* File Upload Section */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Upload Content File
+                                    </label>
+                                    <FileUpload
+                                        onUploadComplete={(ipfsHash, gatewayUrl) => {
+                                            setFormData({ ...formData, ipfsHash });
+                                            setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
+                                        }}
+                                        maxSize={100}
+                                    />
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        Upload your content file and we'll automatically pin it to IPFS
+                                    </p>
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Price in STX *
-                            </label>
-                            <input
-                                type="number"
-                                required
-                                step="0.01"
-                                min="0"
-                                value={formData.priceStx}
-                                onChange={(e) => setFormData({ ...formData, priceStx: e.target.value })}
-                                placeholder="1.00"
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <p className="mt-1 text-sm text-gray-500">
-                                Price in STX (e.g., 1.00 for 1 STX)
-                            </p>
-                        </div>
+                                {/* Divider */}
+                                <div className="relative">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-gray-300"></div>
+                                    </div>
+                                    <div className="relative flex justify-center text-sm">
+                                        <span className="px-2 bg-white text-gray-500">OR enter IPFS hash manually</span>
+                                    </div>
+                                </div>
 
-                        {/* Metadata Generation */}
-                        <MetadataForm
-                            onMetadataGenerated={(metadataUri) => {
-                                setFormData({ ...formData, metadataUri });
-                                setSuccess('Metadata generated and uploaded to IPFS!');
-                            }}
-                        />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        IPFS Hash *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.ipfsHash}
+                                        onChange={(e) => setFormData({ ...formData, ipfsHash: e.target.value })}
+                                        placeholder="QmTest123..."
+                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        The IPFS hash of your content
+                                    </p>
+                                </div>
 
-                        {/* Divider */}
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500">OR enter metadata URI manually</span>
-                            </div>
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Price in STX *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        required
+                                        step="0.01"
+                                        min="0"
+                                        value={formData.priceStx}
+                                        onChange={(e) => setFormData({ ...formData, priceStx: e.target.value })}
+                                        placeholder="1.00"
+                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        Price in STX (e.g., 1.00 for 1 STX)
+                                    </p>
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Metadata URI *
-                            </label>
-                            <input
-                                type="url"
-                                required
-                                value={formData.metadataUri}
-                                onChange={(e) => setFormData({ ...formData, metadataUri: e.target.value })}
-                                placeholder="https://example.com/metadata.json"
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <p className="mt-1 text-sm text-gray-500">
-                                URL to your content metadata
-                            </p>
-                        </div>
-
-                        <div className="border-t pt-6">
-                            <h3 className="text-lg font-medium mb-4">Optional: Token Pricing</h3>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Price in USD (xUSDC)
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.priceToken}
-                                    onChange={(e) => setFormData({ ...formData, priceToken: e.target.value })}
-                                    placeholder="5.00"
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                {/* Metadata Generation */}
+                                <MetadataForm
+                                    onMetadataGenerated={(metadataUri) => {
+                                        setFormData({ ...formData, metadataUri });
+                                        setSuccess('Metadata generated and uploaded to IPFS!');
+                                    }}
                                 />
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Price in USD (e.g., 5.00 for $5.00)
-                                </p>
-                            </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Token Contract
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.tokenContract}
-                                    onChange={(e) => setFormData({ ...formData, tokenContract: e.target.value })}
-                                    placeholder="STH45SXAYXZR7ACA469PQD2YQEC678F3273KCYNM.mock-usdc"
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                <p className="mt-1 text-sm text-gray-500">
-                                    SIP-010 token contract address
-                                </p>
-                            </div>
+                                {/* Divider */}
+                                <div className="relative">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-gray-300"></div>
+                                    </div>
+                                    <div className="relative flex justify-center text-sm">
+                                        <span className="px-2 bg-white text-gray-500">OR enter metadata URI manually</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Metadata URI *
+                                    </label>
+                                    <input
+                                        type="url"
+                                        required
+                                        value={formData.metadataUri}
+                                        onChange={(e) => setFormData({ ...formData, metadataUri: e.target.value })}
+                                        placeholder="https://example.com/metadata.json"
+                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        URL to your content metadata
+                                    </p>
+                                </div>
+
+                                <div className="border-t pt-6">
+                                    <h3 className="text-lg font-medium mb-4">Optional: Token Pricing</h3>
+
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Price in USD (xUSDC)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={formData.priceToken}
+                                            onChange={(e) => setFormData({ ...formData, priceToken: e.target.value })}
+                                            placeholder="5.00"
+                                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Price in USD (e.g., 5.00 for $5.00)
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Token Contract
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.tokenContract}
+                                            onChange={(e) => setFormData({ ...formData, tokenContract: e.target.value })}
+                                            placeholder="STH45SXAYXZR7ACA469PQD2YQEC678F3273KCYNM.mock-usdc"
+                                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            SIP-010 token contract address
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium text-lg"
+                                >
+                                    {loading ? 'Registering...' : 'Register Content'}
+                                </button>
+                            </form>
                         </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium text-lg"
-                        >
-                            {loading ? 'Registering...' : 'Register Content'}
-                        </button>
-                    </form>
-                </div>
+                    </TabsContent>
+                </Tabs>
 
                 <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
                     <h3 className="font-bold text-blue-900 mb-2">💡 Tips</h3>

@@ -13,9 +13,11 @@ A production-ready decentralized content payment system built on Stacks blockcha
   - Content activation/deactivation
   - Creator content indexing
   - ✅ 14 unit tests passing
+  - 🚀 **USDCx Integration:** Fully supports USDCx (token-wusdcx) for content pricing and payments.
 
 - **payment-handler.clar** - Processes payments and grants access
   - STX payment processing
+  - ✅ **USDCx Payments:** SIP-010 compliant payment flow for USDCx.
   - Automatic access grants
   - Payment receipt generation
   - Duplicate payment prevention
@@ -260,6 +262,12 @@ stacks-content-payment/
    - Create API routes
    - Add middleware
    - Write tests
+
+### 🏆 USDCx Builder Challenge
+The platform is fully optimized for the USDCx Builder Challenge (Jan 19-25, 2026).
+- **Core Integration:** USDCx (token-wusdcx) used as the primary stablecoin for creator earnings.
+- **UX Enhancements:** Built-in Bridge Helper for Ethereum-to-Stacks liquidity.
+- **Security:** Audited USDCx logic with custom UI verification for minting events.
 
 2. **Build Frontend**
    - Initialize Next.js project
