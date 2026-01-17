@@ -230,7 +230,20 @@ export const stacks = {
         try {
             const apiUrl = (network as any).coreApiUrl || 'https://api.testnet.hiro.so';
 
-            const response = await fetch(`${apiUrl}/extended/v1/address/${address}/balances`);
+            const response = await fetch(`${apiUrl}/extended/v1/address/${address}/balances`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                // Add CORS mode
+                mode: 'cors',
+            });
+
+            if (!response.ok) {
+                console.error('Failed to fetch balance:', response.status);
+                return 0;
+            }
+
             const data = await response.json();
             return parseInt(data.stx.balance);
         } catch (error) {

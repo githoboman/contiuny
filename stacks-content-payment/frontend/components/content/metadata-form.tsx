@@ -19,9 +19,7 @@ export function MetadataForm({ onMetadataGenerated }: MetadataFormProps) {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    async function handleGenerate(e: React.FormEvent) {
-        e.preventDefault();
-
+    async function handleGenerate() {
         if (!formData.title || !formData.description) {
             setError('Title and description are required');
             return;
@@ -67,7 +65,7 @@ export function MetadataForm({ onMetadataGenerated }: MetadataFormProps) {
                 Fill in the details below and we'll automatically create and upload your metadata to IPFS
             </p>
 
-            <form onSubmit={handleGenerate} className="space-y-4">
+            <div className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Title *
@@ -183,13 +181,14 @@ export function MetadataForm({ onMetadataGenerated }: MetadataFormProps) {
                 )}
 
                 <button
-                    type="submit"
+                    type="button"
+                    onClick={handleGenerate}
                     disabled={uploading}
                     className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 font-medium"
                 >
                     {uploading ? 'Generating Metadata...' : 'Generate & Upload Metadata'}
                 </button>
-            </form>
+            </div>
         </div>
     );
 }

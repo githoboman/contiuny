@@ -2,7 +2,7 @@
 
 import { Content, ApiResponse, PaginatedResponse, UserAccess } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const response = await fetch(`${API_URL}${endpoint}`, {
