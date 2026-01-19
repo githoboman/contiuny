@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Content } from '@/types';
 import { ContentCard } from '@/components/content/content-card';
@@ -95,6 +96,29 @@ export default function ContentPage() {
                     )}
                 </>
             )}
+
+            {/* Creator CTA */}
+            <div className="mt-16 bg-gradient-to-r from-orange-50 to-blue-50 rounded-2xl p-8 md:p-12 border border-orange-200">
+                <div className="max-w-3xl mx-auto text-center">
+                    <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
+                        Want to Publish Your Own Content?
+                    </h2>
+                    <p className="text-lg text-gray-700 mb-6">
+                        Join as a creator and start earning with <span className="font-bold text-orange-600">USDCx</span> and <span className="font-bold text-blue-600">STX</span>
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <Link
+                            href="/creators"
+                            className="px-8 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-700 hover:to-orange-800 transition font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            Join as Creator →
+                        </Link>
+                        <p className="text-sm text-gray-600">
+                            Set your own prices • Get paid directly • Full control
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

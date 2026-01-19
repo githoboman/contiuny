@@ -16,8 +16,11 @@ export function Header() {
                         <Link href="/content" className="hover:text-blue-600 transition">
                             Browse Content
                         </Link>
-                        <Link href="/creator/dashboard" className="hover:text-blue-600 transition">
-                            Creator Dashboard
+                        <Link
+                            href="/creators"
+                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition font-medium shadow-sm"
+                        >
+                            Join Creators
                         </Link>
                         <ConnectWallet />
                     </nav>
