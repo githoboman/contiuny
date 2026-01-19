@@ -85,14 +85,32 @@ export const stacks = {
             // Connect to wallet
             console.log('Connecting to wallet...');
             const response = await connect();
+            console.log('Connect response structure:', response);
 
-            if (response?.addresses?.stx?.[0]?.address) {
-                const address = response.addresses.stx[0].address;
+            // Handle different possible response structures
+            let address: string | undefined;
+
+            // Try format 1: response.addresses.stx[0].address (object format)
+            if (response?.addresses && typeof response.addresses === 'object' && !Array.isArray(response.addresses)) {
+                const addressesObj = response.addresses as any;
+                if (addressesObj.stx?.[0]?.address) {
+                    address = addressesObj.stx[0].address;
+                }
+            }
+
+            // Try format 2: response.addresses[0].address (array format)
+            if (!address && Array.isArray(response?.addresses) && response.addresses.length > 0) {
+                address = response.addresses[0].address;
+            }
+
+            if (address) {
                 console.log('Connected address:', address);
                 return address;
             }
 
-            throw new Error('Failed to get address from wallet');
+            // Log the full response to help debug
+            console.error('Unexpected response structure:', JSON.stringify(response, null, 2));
+            throw new Error('Failed to get address from wallet. Please ensure your wallet is unlocked and try again.');
         } catch (error) {
             console.error('Wallet connection error:', error);
             throw error;

@@ -45,11 +45,11 @@ export function BridgeHelper() {
   }, [address]);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto border-purple-500/20 bg-background/50 backdrop-blur-sm">
+    <Card className="w-full max-w-2xl mx-auto border-orange-300 bg-white shadow-lg">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <CardTitle className="text-2xl font-bold text-orange-600">
               Bridge to USDCx
             </CardTitle>
             <CardDescription>
@@ -58,7 +58,7 @@ export function BridgeHelper() {
           </div>
           <div className="text-right">
             <span className="text-sm text-muted-foreground font-medium block">Current Balance</span>
-            <span className="text-xl font-mono text-purple-400">{usdcxBalance} USDCx</span>
+            <span className="text-xl font-mono text-orange-600 font-bold">{usdcxBalance} USDCx</span>
           </div>
         </div>
       </CardHeader>
@@ -70,7 +70,7 @@ export function BridgeHelper() {
           <div className="space-y-8 relative">
             {/* Step 1 */}
             <div className={`flex gap-4 items-start ${step === 1 ? 'opacity-100' : 'opacity-50'}`}>
-              <div className={`mt-1 z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-background transition-colors ${step >= 1 ? 'border-blue-500 text-blue-500' : 'border-muted-foreground text-muted-foreground'}`}>
+              <div className={`mt-1 z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-white transition-colors ${step >= 1 ? 'border-orange-600 text-orange-600 font-bold' : 'border-gray-400 text-gray-400'}`}>
                 {step > 1 ? <CheckCircle2 className="w-5 h-5" /> : "1"}
               </div>
               <div className="flex-1 space-y-2">
@@ -82,7 +82,7 @@ export function BridgeHelper() {
                   variant="outline"
                   size="sm"
                   onClick={() => window.open(CONFIG.USDC_SEPOLIA_FAUCET, "_blank")}
-                  className="mt-2 border-blue-500/30 hover:bg-blue-500/10"
+                  className="mt-2 border-orange-500 hover:bg-orange-50"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Visit Circle Faucet
@@ -92,7 +92,7 @@ export function BridgeHelper() {
 
             {/* Step 2 */}
             <div className={`flex gap-4 items-start ${step === 2 ? 'opacity-100' : 'opacity-50 transition-opacity'}`}>
-              <div className={`mt-1 z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-background transition-colors ${step >= 2 ? 'border-purple-500 text-purple-500' : 'border-muted-foreground text-muted-foreground'}`}>
+              <div className={`mt-1 z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-white transition-colors ${step >= 2 ? 'border-orange-600 text-orange-600 font-bold' : 'border-gray-400 text-gray-400'}`}>
                 {step > 2 ? <CheckCircle2 className="w-5 h-5" /> : "2"}
               </div>
               <div className="flex-1 space-y-4">
@@ -107,7 +107,7 @@ export function BridgeHelper() {
                   <div className="flex gap-2 pt-2">
                     <Button
                       onClick={() => setStep(3)}
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-orange-600 hover:bg-orange-700"
                     >
                       I&apos;ve initiated the bridge
                     </Button>
@@ -125,7 +125,7 @@ export function BridgeHelper() {
 
             {/* Step 3 */}
             <div className={`flex gap-4 items-start ${step === 3 ? 'opacity-100' : 'opacity-50 transition-opacity'}`}>
-              <div className={`mt-1 z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-background transition-colors ${step >= 3 ? 'border-green-500 text-green-500' : 'border-muted-foreground text-muted-foreground'}`}>
+              <div className={`mt-1 z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-white transition-colors ${step >= 3 ? 'border-green-600 text-green-600 font-bold' : 'border-gray-400 text-gray-400'}`}>
                 {parseFloat(usdcxBalance) > 0 ? <CheckCircle2 className="w-5 h-5" /> : step === 3 ? <Loader2 className="w-5 h-5 animate-spin" /> : "3"}
               </div>
               <div className="flex-1 space-y-4">

@@ -133,7 +133,7 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
                 <Button
                     onClick={() => handlePayment('stx')}
                     disabled={loading}
-                    className="w-full h-14 text-lg font-semibold relative group bg-blue-600 hover:bg-blue-700"
+                    className="w-full h-14 text-lg font-semibold relative group bg-orange-600 hover:bg-orange-700"
                 >
                     {loading ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -151,7 +151,7 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
                             onClick={() => handlePayment('token')}
                             disabled={loading}
                             variant="secondary"
-                            className="w-full h-14 text-lg font-semibold border-2 border-purple-500/20 hover:border-purple-500/40 bg-purple-50 hover:bg-purple-100 text-purple-700"
+                            className="w-full h-14 text-lg font-semibold border-2 border-orange-500 hover:border-orange-600 bg-orange-50 hover:bg-orange-100 text-black"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -170,7 +170,7 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
                                 </span>
                                 <a
                                     href="/creator/dashboard?tabs=bridge"
-                                    className="text-[10px] text-purple-600 hover:underline flex items-center gap-1 font-medium"
+                                    className="text-[10px] text-orange-600 hover:underline flex items-center gap-1 font-medium"
                                 >
                                     Get USDCx via Bridge <ArrowRight className="w-3 h-3" />
                                 </a>
