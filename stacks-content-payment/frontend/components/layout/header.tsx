@@ -5,20 +5,23 @@ import { ConnectWallet } from '../wallet/connect-wallet';
 
 export function Header() {
     return (
-        <header className="border-b bg-white/50 backdrop-blur-sm sticky top-0 z-50">
+        <header className="border-b-4 border-black bg-white sticky top-0 z-50">
             <div className="container mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
-                    <Link href="/" className="text-2xl font-bold text-blue-600">
-                        Content Pay
+                    <Link href="/" className="text-3xl font-black uppercase tracking-tight">
+                        <span className="gradient-text">COSTAXR</span>
                     </Link>
 
-                    <nav className="flex items-center gap-6">
-                        <Link href="/content" className="hover:text-blue-600 transition">
-                            Browse Content
+                    <nav className="flex items-center gap-4">
+                        <Link
+                            href="/content"
+                            className="px-4 py-2 font-bold uppercase text-sm hover:text-orange-500 transition"
+                        >
+                            Browse
                         </Link>
                         <Link
                             href="/creators"
-                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition font-medium shadow-sm"
+                            className="px-6 py-2 bg-orange-500 text-white neo-border neo-shadow-sm font-black uppercase text-sm transition-all neo-hover"
                         >
                             Join Creators
                         </Link>
