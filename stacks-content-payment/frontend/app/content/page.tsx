@@ -20,10 +20,14 @@ export default function ContentPage() {
     const loadContent = async () => {
         try {
             setLoading(true);
+            console.log('Fetching content from API...');
             const response = await api.getAllContent(page, 12);
+            console.log('API Response:', response);
+            console.log('Content data:', response.data);
             setContent(response.data);
             setTotal(response.total);
         } catch (err) {
+            console.error('Error loading content:', err);
             setError(err instanceof Error ? err.message : 'Failed to load content');
         } finally {
             setLoading(false);

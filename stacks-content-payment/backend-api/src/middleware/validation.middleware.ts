@@ -182,8 +182,8 @@ export const validateTokenPaymentRequest = (
  */
 function isValidStacksAddress(address: string): boolean {
     // Mainnet addresses start with SP, testnet with ST
-    // Followed by 39 alphanumeric characters
-    const stacksAddressRegex = /^(SP|ST)[0-9A-Z]{39}$/;
+    // Followed by 38-39 alphanumeric characters (some testnet addresses are 40 chars total)
+    const stacksAddressRegex = /^(SP|ST)[0-9A-Z]{38,39}$/;
     return stacksAddressRegex.test(address);
 }
 

@@ -1,5 +1,6 @@
 import { StacksService } from './stacksService';
 import { ContentInfo, ContentMetadata } from '../types';
+import { contentStore } from './contentStore';
 
 export class ContentService {
     private stacksService: StacksService;
@@ -18,13 +19,25 @@ export class ContentService {
         metadataUri: string
     ): Promise<{ contentId: number; txId: string }> {
         try {
-            const result = await this.stacksService.registerContent(
+            // Store content in memory
+            const contentId = contentStore.addContent({
                 creator,
                 ipfsHash,
                 priceStx,
                 metadataUri
-            );
-            return result;
+            });
+
+            const txId = `tx-${Date.now()}`;
+
+            console.log('✅ Content registered successfully:', {
+                contentId,
+                creator,
+                ipfsHash,
+                priceStx,
+                metadataUri
+            });
+
+            return { contentId, txId };
         } catch (error) {
             throw new Error(`Failed to register content: ${error}`);
         }
@@ -42,15 +55,21 @@ export class ContentService {
         metadataUri: string
     ): Promise<{ contentId: number; txId: string }> {
         try {
-            const result = await this.stacksService.registerContentWithToken(
+            // Store content with token pricing
+            const contentId = contentStore.addContent({
                 creator,
                 ipfsHash,
                 priceStx,
+                metadataUri,
                 priceToken,
-                tokenContract,
-                metadataUri
-            );
-            return result;
+                tokenContract
+            });
+
+            const txId = `tx-${Date.now()}`;
+
+            console.log('✅ Content with USDCx registered:', { contentId, priceToken, tokenContract });
+
+            return { contentId, txId };
         } catch (error) {
             throw new Error(`Failed to register content with token: ${error}`);
         }
@@ -61,8 +80,23 @@ export class ContentService {
      */
     async getContentInfo(contentId: number): Promise<ContentMetadata | null> {
         try {
-            const info = await this.stacksService.getContentInfo(contentId);
-            return info;
+            const stored = contentStore.getContent(contentId);
+
+            if (!stored) {
+                return null;
+            }
+
+            // Convert to ContentMetadata format
+            return {
+                creator: stored.creator,
+                ipfsHash: stored.ipfsHash,
+                priceStx: stored.priceStx,
+                metadataUri: stored.metadataUri,
+                priceToken: stored.priceToken,
+                tokenContract: stored.tokenContract,
+                isActive: stored.isActive,
+                createdAt: stored.createdAt.getTime()
+            };
         } catch (error) {
             throw new Error(`Failed to get content info: ${error}`);
         }
@@ -177,16 +211,23 @@ export class ContentService {
         limit: number;
     }> {
         try {
-            const totalCount = await this.getTotalContentCount();
-            const allContent: ContentInfo[] = [];
+            // Get all content from store
+            const allStoredContent = contentStore.getAllContent();
 
-            // Fetch all content
-            for (let i = 1; i <= totalCount; i++) {
-                const metadata = await this.getContentInfo(i);
-                if (metadata && metadata.isActive) {
-                    allContent.push({ contentId: i, metadata });
+            // Convert to ContentInfo format
+            const allContent: ContentInfo[] = allStoredContent.map(stored => ({
+                contentId: stored.contentId,
+                metadata: {
+                    creator: stored.creator,
+                    ipfsHash: stored.ipfsHash,
+                    priceStx: stored.priceStx,
+                    metadataUri: stored.metadataUri,
+                    priceToken: stored.priceToken,
+                    tokenContract: stored.tokenContract,
+                    isActive: stored.isActive,
+                    createdAt: stored.createdAt.getTime() // Convert to timestamp
                 }
-            }
+            }));
 
             // Paginate
             const startIndex = (page - 1) * limit;

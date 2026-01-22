@@ -49,7 +49,11 @@ export default function CreatorDashboard() {
                 }),
             };
 
+            console.log('Submitting content registration:', data);
+
             const response = await api.registerContent(data);
+
+            console.log('Registration response:', response);
 
             if (response.success && response.data) {
                 setSuccess(`Content registered successfully! ID: ${response.data.contentId}`);
@@ -61,8 +65,13 @@ export default function CreatorDashboard() {
                     tokenContract: process.env.NEXT_PUBLIC_MOCK_USDC || '',
                 });
             }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to register content');
+        } catch (err: any) {
+            console.error('Registration error:', err);
+            // Show detailed error if available
+            const errorMessage = err.response?.data?.details
+                ? `Validation failed: ${err.response.data.details.join(', ')}`
+                : err.message || 'Failed to register content';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -135,14 +144,44 @@ export default function CreatorDashboard() {
                                         Upload Content File
                                     </label>
                                     <FileUpload
-                                        onUploadComplete={(ipfsHash, gatewayUrl) => {
-                                            setFormData({ ...formData, ipfsHash });
-                                            setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
+                                        onUploadComplete={async (ipfsHash, gatewayUrl) => {
+                                            // Auto-generate basic metadata
+                                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+                                            try {
+                                                const metadataResponse = await fetch(`${apiUrl}/api/upload/metadata`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({
+                                                        title: `Content ${Date.now()}`,
+                                                        description: 'Auto-generated content',
+                                                        author: address || 'Anonymous',
+                                                        category: 'Other',
+                                                        contentType: 'document',
+                                                        tags: [],
+                                                        thumbnail: gatewayUrl
+                                                    })
+                                                });
+
+                                                if (metadataResponse.ok) {
+                                                    const metadataData = await metadataResponse.json();
+                                                    const metadataUri = metadataData.data.gatewayUrl;
+                                                    setFormData({ ...formData, ipfsHash, metadataUri });
+                                                    setSuccess(`File and metadata uploaded! IPFS Hash: ${ipfsHash}`);
+                                                } else {
+                                                    // Fallback to using file URL as metadata
+                                                    setFormData({ ...formData, ipfsHash, metadataUri: gatewayUrl });
+                                                    setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
+                                                }
+                                            } catch (err) {
+                                                // Fallback to using file URL as metadata
+                                                setFormData({ ...formData, ipfsHash, metadataUri: gatewayUrl });
+                                                setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
+                                            }
                                         }}
                                         maxSize={100}
                                     />
                                     <p className="mt-2 text-sm text-gray-500">
-                                        Upload your content file and we'll automatically pin it to IPFS
+                                        Upload your content file - metadata will be auto-generated
                                     </p>
                                 </div>
 

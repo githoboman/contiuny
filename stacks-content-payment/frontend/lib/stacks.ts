@@ -177,9 +177,13 @@ export const stacks = {
     },
 
     // Payment functions
-    async payWithSTX(contentId: number, price: number): Promise<string> {
-        const address = stacks.getAddress();
-        if (!address) throw new Error('Wallet not connected');
+    async payWithSTX(contentId: number, price: number, userAddress: string): Promise<string> {
+        console.log('payWithSTX called:', { contentId, price, userAddress });
+
+        if (!userAddress) {
+            console.error('payWithSTX: No address found');
+            throw new Error('Wallet not connected');
+        }
 
         const contractAddress = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[0] || '';
         const contractName = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[1] || 'payment-handler';
@@ -207,9 +211,13 @@ export const stacks = {
         });
     },
 
-    async payWithToken(contentId: number, tokenContract: string): Promise<string> {
-        const address = stacks.getAddress();
-        if (!address) throw new Error('Wallet not connected');
+    async payWithToken(contentId: number, tokenContract: string, userAddress: string): Promise<string> {
+        console.log('payWithToken called:', { contentId, tokenContract, userAddress });
+
+        if (!userAddress) {
+            console.error('payWithToken: No address provided');
+            throw new Error('Wallet not connected');
+        }
 
         const contractAddress = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[0] || '';
         const contractName = process.env.NEXT_PUBLIC_PAYMENT_HANDLER?.split('.')[1] || 'payment-handler';

@@ -32,16 +32,24 @@ export function FileUpload({ onUploadComplete, accept, maxSize = 100 }: FileUplo
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch('http://localhost:3005/api/upload', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+            console.log('Uploading to:', `${apiUrl}/api/upload`);
+
+            const response = await fetch(`${apiUrl}/api/upload`, {
                 method: 'POST',
                 body: formData,
             });
 
+            console.log('Upload response status:', response.status);
+
             if (!response.ok) {
-                throw new Error('Upload failed');
+                const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+                console.error('Upload error:', errorData);
+                throw new Error(errorData.error || `Upload failed with status ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('Upload success:', data);
 
             if (data.success) {
                 setProgress(100);
@@ -50,6 +58,7 @@ export function FileUpload({ onUploadComplete, accept, maxSize = 100 }: FileUplo
                 throw new Error(data.error || 'Upload failed');
             }
         } catch (err) {
+            console.error('Upload error:', err);
             setError(err instanceof Error ? err.message : 'Failed to upload file');
         } finally {
             setUploading(false);

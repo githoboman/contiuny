@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PaymentService } from '../services/paymentService';
+import { paymentStore } from '../services/paymentStore';
 import { ApiResponse } from '../types';
 
 const router = Router();
@@ -11,7 +12,7 @@ const paymentService = new PaymentService();
  */
 router.post('/stx', async (req: Request, res: Response) => {
     try {
-        const { user, contentId } = req.body;
+        const { user, contentId, txId } = req.body;
 
         if (!user || !contentId) {
             return res.status(400).json({
@@ -20,13 +21,36 @@ router.post('/stx', async (req: Request, res: Response) => {
             } as ApiResponse<null>);
         }
 
-        const result = await paymentService.processStxPayment(user, contentId);
+        // Get content to find creator and price
+        const { contentStore } = await import('../services/contentStore');
+        const content = contentStore.getContent(contentId);
+
+        if (!content) {
+            return res.status(404).json({
+                success: false,
+                error: 'Content not found'
+            } as ApiResponse<null>);
+        }
+
+        // Record payment in demo store
+        const paymentId = paymentStore.recordPayment({
+            contentId,
+            buyer: user,
+            creator: content.creator,
+            amount: content.priceStx,
+            currency: 'STX',
+            txId: txId || `demo-${Date.now()}`
+        });
 
         res.status(201).json({
             success: true,
-            data: result,
+            data: {
+                success: true,
+                txId: txId || `demo-${Date.now()}`,
+                receiptId: paymentId
+            },
             message: 'STX payment processed successfully'
-        } as ApiResponse<typeof result>);
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -81,7 +105,7 @@ router.get('/verify/:contentId/:user', async (req: Request, res: Response) => {
             } as ApiResponse<null>);
         }
 
-        const hasPaid = await paymentService.verifyPayment(user, contentId);
+        const hasPaid = paymentStore.hasAccess(user, contentId);
 
         res.json({
             success: true,
