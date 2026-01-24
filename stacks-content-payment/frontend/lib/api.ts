@@ -28,6 +28,13 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
         throw err;
     }
 
+    // Check if response is actually JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+        console.error('API returned non-JSON response:', contentType);
+        throw new Error('Server returned invalid response format');
+    }
+
     return response.json();
 }
 

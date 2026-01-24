@@ -37,7 +37,7 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
         try {
             const response = await fetch(`https://api.testnet.hiro.so/extended/v1/address/${address}/balances`);
             const data = await response.json();
-            const usdcxAddress = process.env.NEXT_PUBLIC_USDCX_ADDRESS || "SP3DX3H4FEYZJZ586MFBS25ZW3HZDMEW92260R2PR.token-wusdcx";
+            const usdcxAddress = process.env.NEXT_PUBLIC_USDCX_ADDRESS || "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx";
 
             setBalance({
                 stx: parseInt(data.stx.balance) / 1000000,
@@ -50,7 +50,7 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
 
     // Poll transaction status until confirmed
     async function pollTransactionStatus(txId: string): Promise<boolean> {
-        const maxAttempts = 20; // 60 seconds total (3s intervals)
+        const maxAttempts = 100; // 5 minutes (3s intervals) for Stacks block times
 
         for (let i = 0; i < maxAttempts; i++) {
             try {
@@ -109,32 +109,61 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
                 }
             }
 
-            // Submit transaction
+            // Submit real blockchain transaction
             let result;
 
-            // DEMO MODE: Simulate payment instead of actual blockchain transaction
-            // This allows the platform to demonstrate the full UX without blockchain complexity
-            console.log('🎬 DEMO MODE: Simulating payment transaction...');
+            if (type === 'stx') {
+                console.log('Initiating STX transfer to creator...');
 
-            setPaymentState('confirming');
+                // Get creator address from content
+                const contentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${contentId}`);
+                if (!contentResponse.ok) {
+                    throw new Error('Failed to fetch content details');
+                }
+                const contentData = await contentResponse.json();
+                const creatorAddress = contentData.data.metadata.creator;
 
-            // Simulate transaction ID
-            const mockTxId = `demo-tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            setTxId(mockTxId);
+                // Execute direct STX transfer with MEMO for verification
+                // This ensures money moves visibly and we can verify via Memo
+                result = await stacks.transferStx(
+                    creatorAddress,
+                    priceStx,
+                    `Payment for content #${contentId}`
+                );
+            } else if (type === 'token' && priceToken && tokenContract) {
+                console.log('Initiating token transfer to creator...');
 
-            // Simulate confirmation progress
-            for (let i = 0; i <= 100; i += 20) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                setConfirmationProgress(i);
+                // Get creator address
+                const contentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/content/${contentId}`);
+                if (!contentResponse.ok) {
+                    throw new Error('Failed to fetch content details');
+                }
+                const contentData = await contentResponse.json();
+                const creatorAddress = contentData.data.metadata.creator;
+
+                // Execute token transfer
+                result = await stacks.transferToken(
+                    creatorAddress,
+                    priceToken,
+                    tokenContract,
+                    `Payment for content #${contentId}`
+                );
             }
 
-            // Mark as successful
-            result = mockTxId;
-
-            console.log('✅ Demo payment successful:', mockTxId);
+            console.log('Transaction submitted:', result);
 
             if (!result) {
                 throw new Error('Transaction failed to submit');
+            }
+
+            setTxId(result);
+            setPaymentState('confirming');
+
+            // Wait for transaction confirmation
+            const confirmed = await pollTransactionStatus(result);
+
+            if (!confirmed) {
+                throw new Error('Transaction confirmation timeout or failed');
             }
 
             // Call backend to record payment and grant access

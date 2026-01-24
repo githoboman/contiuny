@@ -29,8 +29,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
                     const address = stacks.getAddress();
                     if (address) {
                         setWalletState({ address, isConnected: true, balance: 0 });
-                        const balance = await stacks.getBalance(address);
-                        setWalletState(prev => ({ ...prev, balance }));
+                        // Fetch balance in background
+                        try {
+                            const balance = await stacks.getBalance(address);
+                            setWalletState(prev => ({ ...prev, balance }));
+                        } catch (balanceError) {
+                            console.warn('Could not fetch balance after sign-in:', balanceError);
+                        }
                     }
                 } catch (error) {
                     console.error('Error handling pending sign-in:', error);
@@ -39,8 +44,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
                 const address = stacks.getAddress();
                 if (address) {
                     setWalletState(prev => ({ ...prev, address, isConnected: true }));
+                    // Fetch balance in background
                     stacks.getBalance(address).then(balance => {
                         setWalletState(prev => ({ ...prev, balance }));
+                    }).catch(error => {
+                        console.warn('Could not fetch balance on page load:', error);
                     });
                 }
             }

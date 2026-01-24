@@ -54,35 +54,30 @@ export const validateContentRegistration = (
         }
     }
 
-    // Validate token pricing if provided
-    if (priceToken !== undefined || tokenContract !== undefined) {
-        // Both must be provided together
-        if (!priceToken || !tokenContract) {
-            errors.push('Both priceToken and tokenContract must be provided together');
+    // Validate token pricing if provided (both must be present and valid)
+    if (priceToken && tokenContract) {
+        // Validate token price
+        if (typeof priceToken !== 'number' || priceToken <= 0) {
+            errors.push('priceToken must be a positive number');
         } else {
-            // Validate token price
-            if (typeof priceToken !== 'number' || priceToken <= 0) {
-                errors.push('priceToken must be a positive number');
-            } else {
-                // Token price limits (assuming 6 decimals like USDC)
-                const MIN_TOKEN_PRICE = 10_000; // $0.01 minimum
-                const MAX_TOKEN_PRICE = 1_000_000_000_000; // $1,000,000 maximum
+            // Token price limits (assuming 6 decimals like USDC)
+            const MIN_TOKEN_PRICE = 10_000; // $0.01 minimum
+            const MAX_TOKEN_PRICE = 1_000_000_000_000; // $1,000,000 maximum
 
-                if (priceToken < MIN_TOKEN_PRICE) {
-                    errors.push(`priceToken must be at least $${MIN_TOKEN_PRICE / 1_000_000}`);
-                }
-
-                if (priceToken > MAX_TOKEN_PRICE) {
-                    errors.push(`priceToken cannot exceed $${MAX_TOKEN_PRICE / 1_000_000}`);
-                }
+            if (priceToken < MIN_TOKEN_PRICE) {
+                errors.push(`priceToken must be at least $${MIN_TOKEN_PRICE / 1_000_000}`);
             }
 
-            // Validate token contract
-            if (typeof tokenContract !== 'string') {
-                errors.push('tokenContract must be a valid string');
-            } else if (!isValidContractId(tokenContract)) {
-                errors.push('tokenContract must be a valid contract identifier (address.contract-name)');
+            if (priceToken > MAX_TOKEN_PRICE) {
+                errors.push(`priceToken cannot exceed $${MAX_TOKEN_PRICE / 1_000_000}`);
             }
+        }
+
+        // Validate token contract
+        if (typeof tokenContract !== 'string') {
+            errors.push('tokenContract must be a valid string');
+        } else if (!isValidContractId(tokenContract)) {
+            errors.push('tokenContract must be a valid contract identifier (address.contract-name)');
         }
     }
 

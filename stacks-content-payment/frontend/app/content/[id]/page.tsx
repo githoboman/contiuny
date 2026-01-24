@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Content } from '@/types';
 import { PaymentButton } from '@/components/content/payment-button';
+import { ContentViewer } from '@/components/content/content-viewer';
 import { useWallet } from '@/components/wallet/wallet-provider';
 import { formatStx, formatUsd } from '@/lib/utils';
 
@@ -111,10 +112,11 @@ export default function ContentDetailPage() {
                     {hasAccess ? (
                         <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
                             <h2 className="text-xl font-bold text-green-800 mb-4">✓ You have access to this content</h2>
-                            <p className="text-green-700 mb-4">You can now view the full content.</p>
+                            <p className="text-green-700 mb-4">Your payment was successful! View your content below:</p>
+
+                            {/* Content Viewer */}
                             <div className="bg-white p-4 rounded border">
-                                <p className="text-gray-600">Content would be displayed here...</p>
-                                <p className="text-sm text-gray-500 mt-2">IPFS: {metadata.ipfsHash}</p>
+                                <ContentViewer ipfsHash={metadata.ipfsHash} metadataUri={metadata.metadataUri} />
                             </div>
                         </div>
                     ) : (

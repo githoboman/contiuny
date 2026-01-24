@@ -71,14 +71,27 @@ router.get('/:id', async (req: Request, res: Response) => {
             } as ApiResponse<null>);
         }
 
-        const metadata = await contentService.getContentInfo(contentId);
+        const { contentStore } = await import('../services/contentStore');
+        const content = contentStore.getContent(contentId);
 
-        if (!metadata) {
+        if (!content) {
             return res.status(404).json({
                 success: false,
                 error: 'Content not found'
             } as ApiResponse<null>);
         }
+
+        // Format to match expected structure
+        const metadata = {
+            creator: content.creator,
+            ipfsHash: content.ipfsHash,
+            priceStx: content.priceStx,
+            metadataUri: content.metadataUri,
+            priceToken: content.priceToken,
+            tokenContract: content.tokenContract,
+            isActive: content.isActive,
+            createdAt: content.createdAt.getTime()
+        };
 
         res.json({
             success: true,
@@ -150,37 +163,6 @@ router.put('/:id/price', async (req: Request, res: Response) => {
 });
 
 /**
- * DELETE /api/content/:id
- * Deactivate content
- */
-router.delete('/:id', async (req: Request, res: Response) => {
-    try {
-        const contentId = parseInt(req.params.id);
-        const { creator } = req.body;
-
-        if (isNaN(contentId) || !creator) {
-            return res.status(400).json({
-                success: false,
-                error: 'Missing required field: creator'
-            } as ApiResponse<null>);
-        }
-
-        const result = await contentService.deactivateContent(creator, contentId);
-
-        res.json({
-            success: true,
-            data: result,
-            message: 'Content deactivated successfully'
-        } as ApiResponse<typeof result>);
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : 'Failed to deactivate content'
-        } as ApiResponse<null>);
-    }
-});
-
-/**
  * POST /api/content/:id/reactivate
  * Reactivate content
  */
@@ -213,22 +195,69 @@ router.post('/:id/reactivate', async (req: Request, res: Response) => {
 
 /**
  * GET /api/content/creator/:address
- * Get all content by creator
+ * Get all content by a specific creator
  */
 router.get('/creator/:address', async (req: Request, res: Response) => {
     try {
-        const creator = req.params.address;
+        const { address } = req.params;
+        const { contentStore } = await import('../services/contentStore');
 
-        const content = await contentService.getCreatorContent(creator);
+        const creatorContent = contentStore.getContentByCreator(address);
 
         res.json({
             success: true,
-            data: content
-        } as ApiResponse<ContentInfo[]>);
+            data: creatorContent
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
             error: error instanceof Error ? error.message : 'Failed to get creator content'
+        } as ApiResponse<null>);
+    }
+});
+
+/**
+ * DELETE /api/content/:id
+ * Delete content (creator only)
+ */
+router.delete('/:id', async (req: Request, res: Response) => {
+    try {
+        const contentId = parseInt(req.params.id);
+        const { creator } = req.body;
+
+        if (!creator) {
+            return res.status(400).json({
+                success: false,
+                error: 'Creator address required'
+            } as ApiResponse<null>);
+        }
+
+        const { contentStore } = await import('../services/contentStore');
+        const deleted = contentStore.deleteContent(contentId, creator);
+
+        if (!deleted) {
+            return res.status(404).json({
+                success: false,
+                error: 'Content not found'
+            } as ApiResponse<null>);
+        }
+
+        res.json({
+            success: true,
+            data: { contentId, deleted: true },
+            message: 'Content deleted successfully'
+        });
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('Unauthorized')) {
+            return res.status(403).json({
+                success: false,
+                error: error.message
+            } as ApiResponse<null>);
+        }
+
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to delete content'
         } as ApiResponse<null>);
     }
 });

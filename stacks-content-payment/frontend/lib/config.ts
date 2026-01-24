@@ -10,7 +10,7 @@ export const CONTRACTS = {
     MOCK_USDC: process.env.NEXT_PUBLIC_MOCK_USDC!,
     USDCX: process.env.NEXT_PUBLIC_USDCX_ADDRESS ||
         process.env.NEXT_PUBLIC_MOCK_USDC ||
-        'SP3DX3H4FEYZJZ586MFBS25ZW3HZDMEW92260R2PR.token-wusdcx',
+        'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx',
 };
 
 export const NETWORK = {

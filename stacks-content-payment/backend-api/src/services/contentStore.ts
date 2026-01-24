@@ -30,7 +30,7 @@ class ContentStore {
             priceStx: 500000, // 0.5 STX
             metadataUri: 'https://gateway.pinata.cloud/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
             priceToken: 100, // $1.00
-            tokenContract: 'SP3DX3H4FEYZJZ586MFBS25ZW3HZDMEW92260R2PR.token-wusdcx'
+            tokenContract: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx'
         });
 
         // Sample content 2
@@ -62,12 +62,44 @@ class ContentStore {
     }
 
     getAllContent(): StoredContent[] {
-        return Array.from(this.contents.values()).filter(c => c.isActive);
+        return Array.from(this.contents.values());
     }
 
-    getCreatorContent(creator: string): StoredContent[] {
+    getContentByCreator(creator: string): StoredContent[] {
         return Array.from(this.contents.values())
-            .filter(c => c.creator === creator && c.isActive);
+            .filter(content => content.creator === creator);
+    }
+
+    deleteContent(contentId: number, creator: string): boolean {
+        const content = this.contents.get(contentId);
+        if (!content) {
+            return false;
+        }
+
+        // Only allow creator to delete their own content
+        if (content.creator !== creator) {
+            throw new Error('Unauthorized: Only the creator can delete this content');
+        }
+
+        this.contents.delete(contentId);
+        console.log(`🗑️ Content #${contentId} deleted by creator`);
+        return true;
+    }
+
+    deactivateContent(contentId: number, creator: string): boolean {
+        const content = this.contents.get(contentId);
+        if (!content) {
+            return false;
+        }
+
+        // Only allow creator to deactivate their own content
+        if (content.creator !== creator) {
+            throw new Error('Unauthorized: Only the creator can deactivate this content');
+        }
+
+        content.isActive = false;
+        console.log(`⏸️ Content #${contentId} deactivated by creator`);
+        return true;
     }
 
     getTotalCount(): number {

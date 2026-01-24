@@ -9,6 +9,9 @@ import {
     PostConditionMode,
     uintCV,
     principalCV,
+    bufferCV,
+    someCV,
+    noneCV,
 } from '@stacks/transactions';
 
 // Lazy initialization to avoid SSR issues
@@ -176,7 +179,68 @@ export const stacks = {
         return null;
     },
 
-    // Payment functions
+    // Transfer functions for direct payments
+    async transferStx(recipient: string, amount: number, memo?: string): Promise<string> {
+        console.log('transferStx called:', { recipient, amount, memo });
+
+        const { openSTXTransfer } = await import('@stacks/connect');
+
+        return new Promise((resolve, reject) => {
+            openSTXTransfer({
+                recipient,
+                amount: amount.toString(),
+                memo,
+                network,
+                anchorMode: AnchorMode.Any,
+                onFinish: (data) => {
+                    console.log('STX transfer submitted:', data.txId);
+                    resolve(data.txId);
+                },
+                onCancel: () => {
+                    reject(new Error('Transaction cancelled by user'));
+                },
+            });
+        });
+    },
+
+    async transferToken(recipient: string, amount: number, tokenContract: string, memo?: string): Promise<string> {
+        console.log('transferToken called:', { recipient, amount, tokenContract, memo });
+
+        const { openContractCall } = await import('@stacks/connect');
+
+        // Parse token contract address
+        const [contractAddress, contractName] = tokenContract.split('.');
+
+        // Create buffer for memo if present
+        // Stacks memos are 34 bytes max
+        // For SIP-10 transfer, the last arg is usually memo (optional)
+
+        return new Promise((resolve, reject) => {
+            openContractCall({
+                contractAddress,
+                contractName,
+                functionName: 'transfer',
+                functionArgs: [
+                    uintCV(amount),           // amount
+                    principalCV(userSession!.loadUserData().profile.stxAddress.testnet), // sender (self)
+                    principalCV(recipient),   // recipient
+                    memo ? someCV(bufferCV(Buffer.from(memo))) : noneCV() // memo (optional)
+                ],
+                network,
+                anchorMode: AnchorMode.Any,
+                postConditionMode: PostConditionMode.Allow,
+                onFinish: (data) => {
+                    console.log('Token transfer submitted:', data.txId);
+                    resolve(data.txId);
+                },
+                onCancel: () => {
+                    reject(new Error('Transaction cancelled by user'));
+                },
+            });
+        });
+    },
+
+    // Contract-based payment functions (legacy/alternative)
     async payWithSTX(contentId: number, price: number, userAddress: string): Promise<string> {
         console.log('payWithSTX called:', { contentId, price, userAddress });
 
@@ -251,31 +315,62 @@ export const stacks = {
         });
     },
 
-    // Get STX balance
-    async getBalance(address: string): Promise<number> {
-        try {
-            const apiUrl = (network as any).coreApiUrl || 'https://api.testnet.hiro.so';
+    // Get STX balance with retry logic
+    async getBalance(address: string, retries = 2): Promise<number> {
+        const apiUrls = [
+            'https://api.testnet.hiro.so',
+            'https://api.hiro.so', // Alternative endpoint
+        ];
 
-            const response = await fetch(`${apiUrl}/extended/v1/address/${address}/balances`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-                // Add CORS mode
-                mode: 'cors',
-            });
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            for (const apiUrl of apiUrls) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-            if (!response.ok) {
-                console.error('Failed to fetch balance:', response.status);
-                return 0;
+                    const response = await fetch(`${apiUrl}/extended/v1/address/${address}/balances`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        mode: 'cors',
+                        signal: controller.signal,
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        console.warn(`Failed to fetch balance from ${apiUrl}:`, response.status);
+                        continue; // Try next URL
+                    }
+
+
+                    // Check if response is actually JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.warn(`API ${apiUrl} returned non-JSON response`);
+                        continue; // Try next URL
+                    }
+
+                    const data = await response.json();
+                    const balance = parseInt(data.stx.balance) || 0;
+                    return balance; // Success!
+
+                } catch (error: any) {
+                    // Network error, timeout, or aborted
+                    if (error.name === 'AbortError') {
+                        console.warn(`Request to ${apiUrl} timed out`);
+                    } else {
+                        console.warn(`Error fetching from ${apiUrl}:`, error.message);
+                    }
+                    // Continue to next URL or retry
+                }
             }
-
-            const data = await response.json();
-            return parseInt(data.stx.balance);
-        } catch (error) {
-            console.error('Error fetching balance:', error);
-            return 0;
         }
+
+        // All attempts failed
+        console.error('Failed to fetch balance after all retries');
+        return 0;
     },
 
     // Monitor transaction

@@ -5,7 +5,8 @@ import { useWallet } from '@/components/wallet/wallet-provider';
 import { api } from '@/lib/api';
 import { FileUpload } from '@/components/content/file-upload';
 import { MetadataForm } from '@/components/content/metadata-form';
-import { BridgeHelper } from '@/components/bridge/bridge-helper';
+import { SimpleBridge } from '@/components/bridge/simple-bridge';
+import { MyContentList } from '@/components/content/my-content-list';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 
@@ -36,15 +37,16 @@ export default function CreatorDashboard() {
 
         try {
             const priceStxMicroStx = parseFloat(formData.priceStx) * 1_000_000;
-            const priceTokenCents = formData.priceToken ? parseFloat(formData.priceToken) * 100 : undefined;
+            // Convert to 6-decimal units (e.g. USDC uses 6 decimals)
+            const priceTokenUnits = formData.priceToken ? parseFloat(formData.priceToken) * 1_000_000 : undefined;
 
             const data = {
                 creator: address,
                 ipfsHash: formData.ipfsHash,
                 priceStx: priceStxMicroStx,
                 metadataUri: formData.metadataUri,
-                ...(priceTokenCents && {
-                    priceToken: priceTokenCents,
+                ...(priceTokenUnits && {
+                    priceToken: priceTokenUnits,
                     tokenContract: formData.tokenContract,
                 }),
             };
@@ -108,15 +110,18 @@ export default function CreatorDashboard() {
                 </div>
 
                 <Tabs defaultValue="register" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg">
+                    <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-lg">
                         <TabsTrigger value="register" className="data-[state=active]:bg-white data-[state=active]:shadow">
-                            📝 Register Content
+                            📝 Register
                         </TabsTrigger>
                         <TabsTrigger value="my-content" className="data-[state=active]:bg-white data-[state=active]:shadow">
                             📚 My Content
                         </TabsTrigger>
+                        <TabsTrigger value="earnings" className="data-[state=active]:bg-white data-[state=active]:shadow">
+                            💰 Earnings
+                        </TabsTrigger>
                         <TabsTrigger value="usdcx" className="data-[state=active]:bg-white data-[state=active]:shadow">
-                            🪙 Get USDCx
+                            🌉 Bridge
                         </TabsTrigger>
                     </TabsList>
 
@@ -144,38 +149,68 @@ export default function CreatorDashboard() {
                                         Upload Content File
                                     </label>
                                     <FileUpload
-                                        onUploadComplete={async (ipfsHash, gatewayUrl) => {
-                                            // Auto-generate basic metadata
-                                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
-                                            try {
-                                                const metadataResponse = await fetch(`${apiUrl}/api/upload/metadata`, {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({
-                                                        title: `Content ${Date.now()}`,
-                                                        description: 'Auto-generated content',
-                                                        author: address || 'Anonymous',
-                                                        category: 'Other',
-                                                        contentType: 'document',
-                                                        tags: [],
-                                                        thumbnail: gatewayUrl
-                                                    })
-                                                });
+                                        onUploadComplete={async (hash, gatewayUrl) => {
+                                            console.log('Upload complete:', { hash, gatewayUrl });
 
-                                                if (metadataResponse.ok) {
-                                                    const metadataData = await metadataResponse.json();
-                                                    const metadataUri = metadataData.data.gatewayUrl;
-                                                    setFormData({ ...formData, ipfsHash, metadataUri });
-                                                    setSuccess(`File and metadata uploaded! IPFS Hash: ${ipfsHash}`);
-                                                } else {
-                                                    // Fallback to using file URL as metadata
-                                                    setFormData({ ...formData, ipfsHash, metadataUri: gatewayUrl });
-                                                    setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
+                                            // Auto-generate metadata JSON with rich information
+                                            const metadata = {
+                                                title: `Premium Content - ${new Date().toLocaleDateString()}`,
+                                                description: "Exclusive digital content available for purchase on the Stacks blockchain. High-quality content from verified creators.",
+                                                author: address || 'Anonymous Creator',
+                                                contentType: 'digital-asset',
+                                                ipfsHash: hash,
+                                                preview: gatewayUrl, // Use the uploaded file as preview
+                                                createdAt: new Date().toISOString(),
+                                                tags: ['premium', 'exclusive', 'digital-content']
+                                            };
+
+                                            // Upload metadata to IPFS
+                                            const metadataBlob = new Blob([JSON.stringify(metadata, null, 2)], {
+                                                type: 'application/json'
+                                            });
+                                            const metadataFile = new File([metadataBlob], 'metadata.json', {
+                                                type: 'application/json'
+                                            });
+
+                                            try {
+                                                const formData = new FormData();
+                                                formData.append('file', metadataFile);
+
+                                                const uploadResponse = await fetch(
+                                                    'https://api.pinata.cloud/pinning/pinFileToIPFS',
+                                                    {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`
+                                                        },
+                                                        body: formData
+                                                    }
+                                                );
+
+                                                if (!uploadResponse.ok) {
+                                                    console.warn('Metadata upload to IPFS failed, using embedded metadata');
+                                                    throw new Error('Skip to fallback');
                                                 }
-                                            } catch (err) {
-                                                // Fallback to using file URL as metadata
-                                                setFormData({ ...formData, ipfsHash, metadataUri: gatewayUrl });
-                                                setSuccess(`File uploaded! IPFS Hash: ${ipfsHash}`);
+
+                                                const metadataResult = await uploadResponse.json();
+                                                const metadataUri = `https://gateway.pinata.cloud/ipfs/${metadataResult.IpfsHash}`;
+
+                                                console.log('Metadata uploaded:', metadataUri);
+
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    ipfsHash: hash,
+                                                    metadataUri: metadataUri
+                                                }));
+                                            } catch (error) {
+                                                console.warn('Using embedded metadata (IPFS upload not configured)');
+                                                // Fallback: create a data URI with the metadata JSON
+                                                const metadataDataUri = `data:application/json;base64,${btoa(JSON.stringify(metadata))}`;
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    ipfsHash: hash,
+                                                    metadataUri: metadataDataUri
+                                                }));
                                             }
                                         }}
                                         maxSize={100}
@@ -319,16 +354,32 @@ export default function CreatorDashboard() {
                     <TabsContent value="my-content">
                         <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
                             <h2 className="text-2xl font-bold mb-6">My Content</h2>
-                            <div className="text-center py-12 text-gray-500">
-                                <p>Content management coming soon...</p>
-                                <p className="text-sm mt-2">You'll be able to view and manage your published content here</p>
+                            <MyContentList address={address || ''} />
+                        </div>
+                    </TabsContent>
+
+                    {/* Earnings Tab */}
+                    <TabsContent value="earnings">
+                        <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
+                            <h2 className="text-2xl font-bold mb-6">💰 Earnings</h2>
+                            <div className="space-y-4">
+                                <div className="p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                                    <h3 className="text-lg font-bold text-green-800 mb-2">Total Earnings</h3>
+                                    <p className="text-3xl font-black text-green-600">Coming Soon</p>
+                                    <p className="text-sm text-gray-600 mt-2">Track your earnings from content sales</p>
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    <p>• View earnings by payment type (STX, USDCx)</p>
+                                    <p>• Track individual content performance</p>
+                                    <p>• See transaction history</p>
+                                </div>
                             </div>
                         </div>
                     </TabsContent>
 
-                    {/* Get USDCx Tab */}
+                    {/* Bridge Tab */}
                     <TabsContent value="usdcx">
-                        <BridgeHelper />
+                        <SimpleBridge />
                     </TabsContent>
                 </Tabs>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ConnectWallet } from '../wallet/connect-wallet';
+import { MultiWalletConnect } from '../wallet/multi-wallet-connect';
 
 export function Header() {
     return (
@@ -31,7 +31,13 @@ export function Header() {
                         >
                             💰 Earnings
                         </Link>
-                        <ConnectWallet />
+                        <Link
+                            href="/creators/dashboard"
+                            className="px-4 py-2 bg-cyan-400 text-black neo-border neo-shadow-sm font-black uppercase text-sm transition-all neo-hover"
+                        >
+                            🌉 Bridge
+                        </Link>
+                        <MultiWalletConnect />
                     </nav>
                 </div>
             </div>

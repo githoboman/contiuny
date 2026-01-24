@@ -29,7 +29,10 @@ export class UploadService {
     async uploadToIPFS(filePath: string, fileName: string): Promise<string> {
         try {
             const formData = new FormData();
-            formData.append('file', fs.createReadStream(filePath));
+            formData.append('file', fs.createReadStream(filePath), {
+                filename: fileName,
+                contentType: undefined // Let form-data detect content type or set explicit if needed
+            });
 
             // Optional: Add metadata
             const metadata = JSON.stringify({

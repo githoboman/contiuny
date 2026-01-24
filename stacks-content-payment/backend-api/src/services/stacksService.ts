@@ -100,6 +100,7 @@ export class StacksService {
      */
     async checkAccess(userAddress: string, contentId: number): Promise<boolean> {
         try {
+            // 1. Check contract state (Primary check)
             const result = await callReadOnlyFunction({
                 contractAddress: this.paymentHandlerAddress.split('.')[0],
                 contractName: this.paymentHandlerAddress.split('.')[1] || 'payment-handler',
@@ -109,9 +110,103 @@ export class StacksService {
                 senderAddress: userAddress,
             });
 
-            return cvToValue(result) as boolean;
+            const hasContractAccess = cvToValue(result) as boolean;
+            if (hasContractAccess) return true;
+
+            // 2. Fallback: Verify direct transfer history (Secondary check)
+            // This handles cases where user paid via direct wallet transfer
+            console.log(`Checking direct transfer history for User ${userAddress}, Content ${contentId}`);
+
+            // Get content info to verify recipient and price
+            const contentInfo = await this.getContentInfo(contentId);
+            if (!contentInfo) {
+                console.warn('Could not fetch content info for verification');
+                return false;
+            }
+
+            // Parse content info (handling different possible structures from cvToValue)
+            const creator = contentInfo.creator || contentInfo['creator'];
+            const price = contentInfo.price || contentInfo['price']; // likely BigInt
+            const priceNum = Number(price);
+
+            if (!creator || !price) {
+                console.warn('Invalid content info structure');
+                return false;
+            }
+
+            return await this.verifyDirectTransfer(
+                userAddress,
+                creator,
+                priceNum,
+                `Payment for content #${contentId}`
+            );
         } catch (error) {
             console.error('Error checking access:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Verify existence of a direct STX transfer in transaction history
+     */
+    async verifyDirectTransfer(
+        sender: string,
+        recipient: string,
+        amountMicroStx: number,
+        memo: string
+    ): Promise<boolean> {
+        try {
+            const apiUrl = this.network.isMainnet()
+                ? 'https://api.mainnet.hiro.so'
+                : 'https://api.testnet.hiro.so';
+
+            // Fetch recent transactions for the sender
+            const response = await fetch(
+                `${apiUrl}/extended/v1/address/${sender}/transactions?limit=50`
+            );
+
+            if (!response.ok) return false;
+
+            const data = await response.json();
+            const transactions = data.results;
+
+            // Look for matching transaction
+            const match = transactions.find((tx: any) => {
+                const isSuccess = tx.tx_status === 'success';
+                const isTokenTransfer = tx.tx_type === 'token_transfer';
+
+                if (!isSuccess || !isTokenTransfer) return false;
+
+                const txRecipient = tx.token_transfer.recipient_address;
+                const txAmount = Number(tx.token_transfer.amount);
+                const txMemo = tx.token_transfer.memo; // Usually hex
+
+                // Verify recipient and amount
+                if (txRecipient !== recipient) return false;
+                if (Math.abs(txAmount - amountMicroStx) > 100) return false; // Allow small dust error? usually exact
+
+                // Verify memo (convert hex to string or check raw)
+                // Memo in API is '0x...' hex string
+                // expected memo is string 'Payment for content #ID'
+
+                // Simple memo check: convert expected to hex
+                const expectedMemoBuffer = Buffer.from(memo);
+                const expectedMemoHex = '0x' + expectedMemoBuffer.toString('hex');
+
+                // Allow exact match or if API returns raw string (rare)
+                const memoMatch = txMemo === expectedMemoHex || txMemo === memo;
+
+                return memoMatch;
+            });
+
+            if (match) {
+                console.log(`✅ Direct transfer verified: ${match.tx_id}`);
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            console.error('Error verifying direct transfer:', error);
             return false;
         }
     }
