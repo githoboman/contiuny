@@ -109,9 +109,9 @@ export default function Home() {
               <div className="bg-white w-16 h-16 neo-border flex items-center justify-center mb-6">
                 <Coins className="w-8 h-8 text-yellow-600" />
               </div>
-              <h3 className="text-2xl font-black mb-3 uppercase">Dual Payments</h3>
+              <h3 className="text-2xl font-black mb-3 uppercase">Cross-Chain Bridge</h3>
               <p className="font-medium">
-                Pay with STX or USDCx. Your wallet, your choice.
+                Bridge USDC from Ethereum easily. Pay with STX or USDCx.
               </p>
             </div>
 
@@ -120,9 +120,9 @@ export default function Home() {
               <div className="bg-white w-16 h-16 neo-border flex items-center justify-center mb-6">
                 <Sparkles className="w-8 h-8 text-pink-500" />
               </div>
-              <h3 className="text-2xl font-black mb-3 uppercase">Creator First</h3>
+              <h3 className="text-2xl font-black mb-3 uppercase">Privacy Mode</h3>
               <p className="font-medium">
-                100% of payments go to creators. No platform cuts.
+                Encrypted content storage. Only buyers specifically key-holders can access.
               </p>
             </div>
           </div>

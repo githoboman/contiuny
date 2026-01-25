@@ -166,14 +166,25 @@ export class PaymentService {
         totalSales: number;
         totalRevenue: number;
         contentCount: number;
+        earnings: {
+            totalStx: number;
+            totalUsdcx: number;
+        }
     }> {
         try {
-            // This would require indexing in production
-            // For now, return placeholder that would need database support
+            // Get earnings from payment store
+            const { paymentStore } = await import('./paymentStore');
+            const earnings = paymentStore.getCreatorEarnings(creator);
+            const contentCount = await this.stacksService.getCreatorContentCount(creator);
+
             return {
-                totalSales: 0,
-                totalRevenue: 0,
-                contentCount: await this.stacksService.getCreatorContentCount(creator)
+                totalSales: earnings.paymentCount,
+                totalRevenue: 0, // Legacy field, usage deprecated in favor of earnings object
+                contentCount: contentCount,
+                earnings: {
+                    totalStx: earnings.totalStx,
+                    totalUsdcx: earnings.totalUsdcx
+                }
             };
         } catch (error) {
             throw new Error(`Failed to get creator revenue: ${error}`);

@@ -22,6 +22,30 @@ export default function CreatorDashboard() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [earnings, setEarnings] = useState({ totalStx: 0, totalUsdcx: 0, paymentCount: 0 });
+
+    // Load earnings when address changes
+    useEffect(() => {
+        if (address) {
+            loadEarnings();
+        }
+    }, [address]);
+
+    const loadEarnings = async () => {
+        if (!address) return;
+        try {
+            const response = await api.getCreatorRevenue(address);
+            if (response.success && response.data) {
+                setEarnings({
+                    totalStx: response.data.earnings.totalStx,
+                    totalUsdcx: response.data.earnings.totalUsdcx,
+                    paymentCount: response.data.totalSales
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load earnings:', e);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -116,6 +140,9 @@ export default function CreatorDashboard() {
                         </TabsTrigger>
                         <TabsTrigger value="my-content" className="data-[state=active]:bg-cyan-400 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             📚 My Content
+                        </TabsTrigger>
+                        <TabsTrigger value="earnings" className="data-[state=active]:bg-green-500 data-[state=active]:text-white bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
+                            💰 Earnings
                         </TabsTrigger>
                         <TabsTrigger value="usdcx" className="data-[state=active]:bg-yellow-300 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             🌉 Bridge
@@ -331,6 +358,43 @@ export default function CreatorDashboard() {
                         <div className="bg-white neo-border neo-shadow p-8">
                             <h2 className="text-3xl font-black mb-6 uppercase">My Content Library</h2>
                             <MyContentList address={address || ''} />
+                        </div>
+                    </TabsContent>
+
+                    {/* Earnings Tab */}
+                    <TabsContent value="earnings">
+                        <div className="space-y-8">
+                            <div className="bg-white neo-border neo-shadow p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h2 className="text-3xl font-black uppercase">Earnings Overview</h2>
+                                    <button onClick={loadEarnings} className="text-sm font-bold text-gray-500 hover:text-orange-500">
+                                        ↻ Refresh
+                                    </button>
+                                </div>
+
+                                <div className="grid md:grid-cols-3 gap-6">
+                                    {/* STX Card */}
+                                    <div className="bg-gradient-to-br from-orange-500 to-pink-500 neo-border p-6 text-white">
+                                        <div className="text-sm font-bold uppercase opacity-80 mb-1">STX Earned</div>
+                                        <div className="text-4xl font-black">{(earnings.totalStx / 1000000).toFixed(2)} STX</div>
+                                        <div className="text-xs font-mono mt-2 opacity-60">≈ MicroSTX: {earnings.totalStx}</div>
+                                    </div>
+
+                                    {/* USDCx Card */}
+                                    <div className="bg-gradient-to-br from-cyan-400 to-blue-500 neo-border p-6 text-white">
+                                        <div className="text-sm font-bold uppercase opacity-80 mb-1">USDCx Earned</div>
+                                        <div className="text-4xl font-black">${(earnings.totalUsdcx / 1000000).toFixed(2)}</div>
+                                        <div className="text-xs font-mono mt-2 opacity-60">Stablecoin Revenue</div>
+                                    </div>
+
+                                    {/* Sales Card */}
+                                    <div className="bg-gradient-to-br from-green-400 to-emerald-500 neo-border p-6 text-white">
+                                        <div className="text-sm font-bold uppercase opacity-80 mb-1">Total Sales</div>
+                                        <div className="text-4xl font-black">{earnings.paymentCount}</div>
+                                        <div className="text-xs font-mono mt-2 opacity-60">Completed Transactions</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </TabsContent>
 

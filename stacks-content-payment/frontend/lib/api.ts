@@ -129,4 +129,18 @@ export const api = {
     ): Promise<ApiResponse<{ totalPayments: number; totalSpent: number; activeAccess: number }>> {
         return fetchApi(`/api/payment/user/${address}/stats`);
     },
+
+    async getCreatorRevenue(
+        address: string
+    ): Promise<ApiResponse<{
+        totalSales: number;
+        totalRevenue: number;
+        contentCount: number;
+        earnings: {
+            totalStx: number;
+            totalUsdcx: number;
+        }
+    }>> {
+        return fetchApi(`/api/payment/creator/${address}/revenue`);
+    },
 };
