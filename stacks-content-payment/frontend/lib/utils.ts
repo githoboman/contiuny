@@ -9,8 +9,8 @@ export function formatStx(amount: number): string {
     return `${(amount / 1_000_000).toFixed(2)} STX`;
 }
 
-export function formatUsd(cents: number): string {
-    return `$${(cents / 100).toFixed(2)}`;
+export function formatUsd(microUnits: number): string {
+    return `$${(microUnits / 1_000_000).toFixed(2)}`;
 }
 
 export function shortenAddress(address: string): string {

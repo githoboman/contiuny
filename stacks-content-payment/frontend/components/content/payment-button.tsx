@@ -103,8 +103,8 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
                     throw new Error("Insufficient STX balance");
                 }
             } else if (type === 'token' && priceToken) {
-                console.log('Checking USDCx balance...', { balance: balance.usdcx, required: priceToken / 100 });
-                if (balance.usdcx < priceToken / 100) {
+                console.log('Checking USDCx balance...', { balance: balance.usdcx, required: priceToken / 1000000 });
+                if (balance.usdcx < priceToken / 1000000) {
                     throw new Error("Insufficient USDCx balance. Use the bridge to get more.");
                 }
             }
@@ -355,13 +355,13 @@ export function PaymentButton({ contentId, priceStx, priceToken, tokenContract, 
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <div className="flex flex-col items-center">
-                                    <span>Pay ${(priceToken / 100).toFixed(2)} {isUsdcx ? 'USDCx' : 'Token'}</span>
+                                    <span>Pay ${(priceToken / 1000000).toFixed(2)} {isUsdcx ? 'USDCx' : 'Token'}</span>
                                     <span className="text-[10px] opacity-70 font-normal">Balance: {balance.usdcx.toFixed(2)} USDCx</span>
                                 </div>
                             )}
                         </Button>
 
-                        {isUsdcx && balance.usdcx < (priceToken / 100) && (
+                        {isUsdcx && balance.usdcx < (priceToken / 1000000) && (
                             <div className="flex items-center justify-between px-1">
                                 <span className="text-[10px] text-red-500 font-black flex items-center gap-1 uppercase">
                                     <AlertCircle className="w-3 h-3" /> Insufficient USDCx

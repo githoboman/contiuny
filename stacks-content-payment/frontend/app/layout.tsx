@@ -4,6 +4,7 @@ import "./globals.css";
 import { WalletProvider } from "@/components/wallet/wallet-provider";
 import { ReownProvider } from "@/components/wallet/reown-provider";
 import { Header } from "@/components/layout/header";
+import { StacksProvider } from '@/components/wallet/stacks-provider';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,17 +22,19 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ReownProvider>
-          <WalletProvider>
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1">
-                {children}
-              </main>
-              <footer className="border-t py-6 text-center text-sm text-gray-600">
-                <p>Stacks Content Payment Platform - Testnet</p>
-              </footer>
-            </div>
-          </WalletProvider>
+          <StacksProvider>
+            <WalletProvider>
+              <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <footer className="border-t py-6 text-center text-sm text-gray-600">
+                  <p>Stacks Content Payment Platform - Testnet</p>
+                </footer>
+              </div>
+            </WalletProvider>
+          </StacksProvider>
         </ReownProvider>
       </body>
     </html>

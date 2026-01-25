@@ -39,6 +39,13 @@ export default function Home() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
+              href="/bridge"
+              className="px-8 py-5 bg-yellow-300 text-black neo-border neo-shadow font-black text-lg uppercase tracking-wide transition-all neo-hover inline-flex items-center justify-center gap-2"
+            >
+              Bridge USDC
+              <Zap className="w-5 h-5 fill-current" />
+            </Link>
+            <Link
               href="/creators"
               className="px-8 py-5 bg-cyan-400 text-black neo-border neo-shadow font-black text-lg uppercase tracking-wide transition-all neo-hover inline-flex items-center justify-center gap-2"
             >
@@ -48,7 +55,7 @@ export default function Home() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 max-w-2xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto sm:mx-0">
             <div className="bg-white neo-border p-4 text-center">
               <div className="text-3xl font-black text-orange-500">100%</div>
               <div className="text-sm font-bold uppercase">Decentralized</div>
@@ -58,8 +65,10 @@ export default function Home() {
               <div className="text-sm font-bold uppercase">Platform Fees</div>
             </div>
             <div className="bg-white neo-border p-4 text-center">
-              <div className="text-3xl font-black text-pink-500">∞</div>
-              <div className="text-sm font-bold uppercase">Possibilities</div>
+              <div className="text-3xl font-black text-yellow-500 flex items-center justify-center gap-1">
+                USDC <Zap className="w-6 h-6" />
+              </div>
+              <div className="text-sm font-bold uppercase">Native Payments</div>
             </div>
           </div>
         </div>

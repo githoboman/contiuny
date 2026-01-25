@@ -109,43 +109,46 @@ export default function CreatorDashboard() {
                     <p className="text-gray-600 mt-2">Manage your content and earnings</p>
                 </div>
 
-                <Tabs defaultValue="register" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-lg">
-                        <TabsTrigger value="register" className="data-[state=active]:bg-white data-[state=active]:shadow">
+                <Tabs defaultValue="register" className="space-y-8">
+                    <TabsList className="grid w-full grid-cols-4 bg-transparent gap-4 p-0 h-auto">
+                        <TabsTrigger value="register" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             📝 Register
                         </TabsTrigger>
-                        <TabsTrigger value="my-content" className="data-[state=active]:bg-white data-[state=active]:shadow">
+                        <TabsTrigger value="my-content" className="data-[state=active]:bg-cyan-400 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             📚 My Content
                         </TabsTrigger>
-                        <TabsTrigger value="earnings" className="data-[state=active]:bg-white data-[state=active]:shadow">
+                        <TabsTrigger value="earnings" className="data-[state=active]:bg-green-400 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             💰 Earnings
                         </TabsTrigger>
-                        <TabsTrigger value="usdcx" className="data-[state=active]:bg-white data-[state=active]:shadow">
+                        <TabsTrigger value="usdcx" className="data-[state=active]:bg-yellow-300 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             🌉 Bridge
                         </TabsTrigger>
                     </TabsList>
 
                     {/* Register Content Tab */}
                     <TabsContent value="register">
-                        <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
-                            <h2 className="text-2xl font-bold mb-6">Register New Content</h2>
+                        <div className="bg-white neo-border neo-shadow p-8">
+                            <h2 className="text-3xl font-black mb-8 uppercase flex items-center gap-3">
+                                <span className="bg-orange-500 text-white w-10 h-10 flex items-center justify-center neo-border text-lg">1</span>
+                                Register Content
+                            </h2>
 
                             {success && (
-                                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                                    <p className="text-green-800 font-medium">{success}</p>
+                                <div className="mb-6 p-4 bg-green-50 neo-border border-green-900 text-green-900 font-bold flex items-center gap-2">
+                                    <span className="text-xl">✅</span> {success}
                                 </div>
                             )}
 
                             {error && (
-                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-red-800">{error}</p>
+                                <div className="mb-6 p-4 bg-red-50 neo-border border-red-900 text-red-900 font-bold flex items-center gap-2">
+                                    <span className="text-xl">⚠️</span> {error}
                                 </div>
                             )}
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                            <form onSubmit={handleSubmit} className="space-y-8">
                                 {/* File Upload Section */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <div className="bg-gray-50 p-6 neo-border">
+                                    <label className="block text-sm font-black uppercase text-gray-700 mb-4">
                                         Upload Content File
                                     </label>
                                     <FileUpload
@@ -215,55 +218,41 @@ export default function CreatorDashboard() {
                                         }}
                                         maxSize={100}
                                     />
-                                    <p className="mt-2 text-sm text-gray-500">
-                                        Upload your content file - metadata will be auto-generated
-                                    </p>
                                 </div>
 
-                                {/* Divider */}
-                                <div className="relative">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-gray-300"></div>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                                            IPFS Hash *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.ipfsHash}
+                                            onChange={(e) => setFormData({ ...formData, ipfsHash: e.target.value })}
+                                            placeholder="QmTest123..."
+                                            className="w-full px-4 py-3 bg-white neo-border font-mono text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/20 transition-all"
+                                        />
                                     </div>
-                                    <div className="relative flex justify-center text-sm">
-                                        <span className="px-2 bg-white text-gray-500">OR enter IPFS hash manually</span>
+
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                                            Price in STX *
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                required
+                                                step="0.01"
+                                                min="0"
+                                                value={formData.priceStx}
+                                                onChange={(e) => setFormData({ ...formData, priceStx: e.target.value })}
+                                                placeholder="10.0"
+                                                className="w-full px-4 py-3 bg-white neo-border font-bold text-lg focus:outline-none focus:ring-4 focus:ring-orange-500/20 transition-all"
+                                            />
+                                            <div className="absolute right-3 top-3 font-black text-gray-400 pointer-events-none">STX</div>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        IPFS Hash *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.ipfsHash}
-                                        onChange={(e) => setFormData({ ...formData, ipfsHash: e.target.value })}
-                                        placeholder="QmTest123..."
-                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                    />
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        The IPFS hash of your content
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Price in STX *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        required
-                                        step="0.01"
-                                        min="0"
-                                        value={formData.priceStx}
-                                        onChange={(e) => setFormData({ ...formData, priceStx: e.target.value })}
-                                        placeholder="1.00"
-                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                    />
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Price in STX (e.g., 1.00 for 1 STX)
-                                    </p>
                                 </div>
 
                                 {/* Metadata Generation */}
@@ -274,18 +263,8 @@ export default function CreatorDashboard() {
                                     }}
                                 />
 
-                                {/* Divider */}
-                                <div className="relative">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-gray-300"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-sm">
-                                        <span className="px-2 bg-white text-gray-500">OR enter metadata URI manually</span>
-                                    </div>
-                                </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-xs font-black uppercase text-gray-500 mb-2">
                                         Metadata URI *
                                     </label>
                                     <input
@@ -293,58 +272,56 @@ export default function CreatorDashboard() {
                                         required
                                         value={formData.metadataUri}
                                         onChange={(e) => setFormData({ ...formData, metadataUri: e.target.value })}
-                                        placeholder="https://example.com/metadata.json"
-                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="https://..."
+                                        className="w-full px-4 py-3 bg-white neo-border font-mono text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/20 transition-all"
                                     />
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        URL to your content metadata
-                                    </p>
                                 </div>
 
-                                <div className="border-t pt-6">
-                                    <h3 className="text-lg font-medium mb-4">Optional: USDCx Pricing</h3>
+                                <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-6 neo-border border-cyan-200">
+                                    <h3 className="text-lg font-black mb-4 uppercase text-cyan-900 flex items-center gap-2">
+                                        <span className="bg-cyan-400 w-2 h-2"></span> Optional: Stablecoin Pricing
+                                    </h3>
 
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Price in USD (USDCx)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={formData.priceToken}
-                                            onChange={(e) => setFormData({ ...formData, priceToken: e.target.value })}
-                                            placeholder="5.00"
-                                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        />
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Price in USD (e.g., 5.00 for $5.00)
-                                        </p>
-                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-xs font-black uppercase text-cyan-800 mb-2">
+                                                Price in USD (USDCx)
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={formData.priceToken}
+                                                    onChange={(e) => setFormData({ ...formData, priceToken: e.target.value })}
+                                                    placeholder="5.00"
+                                                    className="w-full px-4 py-3 bg-white neo-border border-cyan-900 font-bold text-lg focus:outline-none focus:ring-4 focus:ring-cyan-500/20 transition-all"
+                                                />
+                                                <div className="absolute right-3 top-3 font-black text-gray-400 pointer-events-none">$</div>
+                                            </div>
+                                        </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Token Contract
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.tokenContract}
-                                            onChange={(e) => setFormData({ ...formData, tokenContract: e.target.value })}
-                                            placeholder="STH45SXAYXZR7ACA469PQD2YQEC678F3273KCYNM.mock-usdc"
-                                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        />
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            SIP-010 token contract address
-                                        </p>
+                                        <div>
+                                            <label className="block text-xs font-black uppercase text-cyan-800 mb-2">
+                                                Token Contract
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.tokenContract}
+                                                onChange={(e) => setFormData({ ...formData, tokenContract: e.target.value })}
+                                                placeholder="STH..."
+                                                className="w-full px-4 py-3 bg-white neo-border border-cyan-900 font-mono text-xs focus:outline-none focus:ring-4 focus:ring-cyan-500/20 transition-all"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-700 hover:to-orange-800 transition disabled:opacity-50 font-medium text-lg shadow-lg"
+                                    className="w-full py-4 bg-black text-white neo-border neo-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 font-black uppercase text-xl tracking-widest"
                                 >
-                                    {loading ? 'Registering...' : 'Register Content'}
+                                    {loading ? 'Registering...' : '🚀 Register Content'}
                                 </button>
                             </form>
                         </div>
@@ -352,26 +329,24 @@ export default function CreatorDashboard() {
 
                     {/* My Content Tab */}
                     <TabsContent value="my-content">
-                        <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
-                            <h2 className="text-2xl font-bold mb-6">My Content</h2>
+                        <div className="bg-white neo-border neo-shadow p-8">
+                            <h2 className="text-3xl font-black mb-6 uppercase">My Content Library</h2>
                             <MyContentList address={address || ''} />
                         </div>
                     </TabsContent>
 
                     {/* Earnings Tab */}
                     <TabsContent value="earnings">
-                        <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
-                            <h2 className="text-2xl font-bold mb-6">💰 Earnings</h2>
+                        <div className="bg-white neo-border neo-shadow p-8">
+                            <h2 className="text-3xl font-black mb-6 uppercase">💰 Earnings Report</h2>
                             <div className="space-y-4">
-                                <div className="p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-                                    <h3 className="text-lg font-bold text-green-800 mb-2">Total Earnings</h3>
-                                    <p className="text-3xl font-black text-green-600">Coming Soon</p>
-                                    <p className="text-sm text-gray-600 mt-2">Track your earnings from content sales</p>
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    <p>• View earnings by payment type (STX, USDCx)</p>
-                                    <p>• Track individual content performance</p>
-                                    <p>• See transaction history</p>
+                                <div className="p-8 bg-green-400 neo-border neo-shadow-sm">
+                                    <h3 className="text-lg font-black text-black mb-2 uppercase">Total Revenue</h3>
+                                    <p className="text-5xl font-black text-black">Coming Soon</p>
+                                    <div className="mt-4 flex gap-2">
+                                        <span className="bg-black text-white px-2 py-1 text-xs font-bold uppercase">STX Validated</span>
+                                        <span className="bg-white text-black px-2 py-1 text-xs font-bold uppercase border-2 border-black">USDCx Ready</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -379,7 +354,21 @@ export default function CreatorDashboard() {
 
                     {/* Bridge Tab */}
                     <TabsContent value="usdcx">
-                        <SimpleBridge />
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <SimpleBridge />
+                            </div>
+                            <div className="bg-white neo-border neo-shadow p-6 h-fit">
+                                <h3 className="font-black uppercase text-xl mb-4">Bridge Instructions</h3>
+                                <p className="mb-4 text-sm font-medium">Use this tool to move USDC from Sepolia Ethereum Testnet to Stacks Testnet.</p>
+                                <Link
+                                    href="/bridge"
+                                    className="block w-full text-center bg-yellow-300 py-3 font-black uppercase neo-border hover:bg-yellow-400 transition"
+                                >
+                                    Open Full Bridge Page ↗
+                                </Link>
+                            </div>
+                        </div>
                     </TabsContent>
                 </Tabs>
 

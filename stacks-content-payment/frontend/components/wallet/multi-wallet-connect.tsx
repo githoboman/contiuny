@@ -5,11 +5,13 @@ import { formatStx, shortenAddress } from '@/lib/utils';
 import { useAccount, useDisconnect } from 'wagmi';
 import { Wallet, ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useUsdcxBalance } from '@/lib/hooks/useTokenBalance';
 
 export function MultiWalletConnect() {
     const { address: stxAddress, isConnected: stxConnected, balance, connect: connectStacks, disconnect: disconnectStacks } = useWallet();
     const { address: ethAddress, isConnected: ethConnected } = useAccount();
     const { disconnect: disconnectEth } = useDisconnect();
+    const { balance: usdcxBalance } = useUsdcxBalance(stxAddress);
     const [showDropdown, setShowDropdown] = useState(false);
     const [mounted, setMounted] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -78,6 +80,7 @@ export function MultiWalletConnect() {
                             </div>
                             <div className="font-mono text-xs mb-1">{shortenAddress(stxAddress!)}</div>
                             <div className="text-xs text-gray-600">{formatStx(balance)}</div>
+                            <div className="text-xs text-cyan-600 font-bold">{usdcxBalance.toFixed(2)} USDCx</div>
                         </div>
 
                         {/* Ethereum Wallet */}
@@ -134,6 +137,7 @@ export function MultiWalletConnect() {
                             </div>
                             <div className="font-mono text-xs mb-1">{shortenAddress(stxAddress!)}</div>
                             <div className="text-xs text-gray-600">{formatStx(balance)}</div>
+                            <div className="text-xs text-cyan-600 font-bold">{usdcxBalance.toFixed(2)} USDCx</div>
                         </div>
 
                         {/* Connect Ethereum */}

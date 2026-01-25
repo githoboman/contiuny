@@ -22,12 +22,7 @@ export const wagmiAdapter = new WagmiAdapter({
     ssr: true,
     projectId,
     networks,
-    transports: {
-        [sepolia.id]: fallback([
-            http(ETHEREUM_CONFIG.RPC_URL),
-            ...ETHEREUM_CONFIG.FALLBACK_RPC_URLS.map(url => http(url))
-        ])
-    }
+    networks
 })
 
 export const config = wagmiAdapter.wagmiConfig

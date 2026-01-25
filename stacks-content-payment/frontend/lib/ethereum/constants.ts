@@ -3,13 +3,13 @@ export const ETHEREUM_CONFIG = {
     // Sepolia Testnet
     CHAIN_ID: 11155111,
     CHAIN_NAME: 'Sepolia',
-    RPC_URL: 'https://rpc.ankr.com/eth_sepolia', // Ankr - more reliable than publicnode
+    RPC_URL: 'https://ethereum-sepolia-rpc.publicnode.com', // CORS-friendly, reliable
     // Fallback RPC endpoints in case the primary one fails
     FALLBACK_RPC_URLS: [
-        'https://eth-sepolia.public.blastapi.io',
-        'https://ethereum-sepolia.blockpi.network/v1/rpc/public',
+        'https://1rpc.io/sepolia',
         'https://rpc.sepolia.org',
-        'https://ethereum-sepolia-rpc.publicnode.com',
+        'https://sepolia.drpc.org',
+        'https://eth-sepolia.public.blastapi.io', // Check CORS before prioritizing
     ],
     EXPLORER: 'https://sepolia.etherscan.io',
 
@@ -55,16 +55,20 @@ export const USDC_ABI = [
 ] as const;
 
 // xReserve Contract ABI (minimal - only depositToRemote)
+// xReserve Contract ABI (Circle Bridge)
 export const XRESERVE_ABI = [
     {
-        name: 'depositToRemote',
-        type: 'function',
-        stateMutability: 'nonpayable',
+        name: "depositToRemote",
+        type: "function",
+        stateMutability: "nonpayable",
         inputs: [
-            { name: 'remoteDomain', type: 'uint32' },
-            { name: 'recipient', type: 'bytes32' },
-            { name: 'amount', type: 'uint256' }
+            { name: "value", type: "uint256" },
+            { name: "remoteDomain", type: "uint32" },
+            { name: "remoteRecipient", type: "bytes32" },
+            { name: "localToken", type: "address" },
+            { name: "maxFee", type: "uint256" },
+            { name: "hookData", type: "bytes" },
         ],
-        outputs: []
+        outputs: [],
     }
 ] as const;
