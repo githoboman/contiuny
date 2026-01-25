@@ -25,12 +25,7 @@ export function Header() {
                         >
                             Join Creators
                         </Link>
-                        <Link
-                            href="/creators/earnings"
-                            className="px-4 py-2 font-bold uppercase text-sm hover:text-green-500 transition"
-                        >
-                            💰 Earnings
-                        </Link>
+
                         <Link
                             href="/creators/dashboard"
                             className="px-4 py-2 bg-cyan-400 text-black neo-border neo-shadow-sm font-black uppercase text-sm transition-all neo-hover"

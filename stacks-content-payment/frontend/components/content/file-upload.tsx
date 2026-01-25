@@ -1,9 +1,9 @@
-'use client';
-
 import { useState } from 'react';
+import { Lock, Unlock, Eye, EyeOff } from 'lucide-react';
+import { encryptFile } from '@/lib/encryption';
 
 interface FileUploadProps {
-    onUploadComplete: (ipfsHash: string, gatewayUrl: string) => void;
+    onUploadComplete: (ipfsHash: string, gatewayUrl: string, isEncrypted: boolean) => void;
     accept?: string;
     maxSize?: number; // in MB
 }
@@ -13,6 +13,11 @@ export function FileUpload({ onUploadComplete, accept, maxSize = 100 }: FileUplo
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [dragActive, setDragActive] = useState(false);
+
+    // Privacy / Encryption State
+    const [isLocked, setIsLocked] = useState(false);
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     async function handleUpload(file: File) {
         if (!file) return;
@@ -24,36 +29,45 @@ export function FileUpload({ onUploadComplete, accept, maxSize = 100 }: FileUplo
             return;
         }
 
+        if (isLocked && !password) {
+            setError('Please enter a Secret Key to lock this content');
+            return;
+        }
+
         setUploading(true);
         setError(null);
         setProgress(0);
 
         try {
+            let fileToUpload: File | Blob = file;
+
+            // Encrypt if locked
+            if (isLocked && password) {
+                console.log('Locking content...');
+                const encryptedBlob = await encryptFile(file, password);
+                // Create a new File object from the blob to keep the name but add .locked extension
+                fileToUpload = new File([encryptedBlob], `${file.name}.locked`, { type: 'application/octet-stream' });
+            }
+
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', fileToUpload);
 
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
-            console.log('Uploading to:', `${apiUrl}/api/upload`);
 
             const response = await fetch(`${apiUrl}/api/upload`, {
                 method: 'POST',
                 body: formData,
             });
 
-            console.log('Upload response status:', response.status);
-
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
-                console.error('Upload error:', errorData);
-                throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+                throw new Error(`Upload failed with status ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Upload success:', data);
 
             if (data.success) {
                 setProgress(100);
-                onUploadComplete(data.data.ipfsHash, data.data.gatewayUrl);
+                onUploadComplete(data.data.ipfsHash, data.data.gatewayUrl, isLocked);
             } else {
                 throw new Error(data.error || 'Upload failed');
             }
@@ -93,10 +107,59 @@ export function FileUpload({ onUploadComplete, accept, maxSize = 100 }: FileUplo
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full space-y-4">
+            {/* Privacy Toggle */}
+            <div className={`p-4 rounded-lg border-2 transition-colors ${isLocked ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-black'}`}>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        {isLocked ? <Lock className="w-6 h-6 text-yellow-300" /> : <Unlock className="w-6 h-6 text-gray-400" />}
+                        <span className="font-black uppercase tracking-wide">
+                            {isLocked ? 'Content Locked' : 'Public Content'}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsLocked(!isLocked)}
+                        className={`text-xs font-bold uppercase px-3 py-1 rounded-full border-2 transition-all ${isLocked
+                                ? 'border-white text-white hover:bg-white hover:text-black'
+                                : 'border-black text-black hover:bg-black hover:text-white'
+                            }`}
+                    >
+                        {isLocked ? 'Disable Lock' : 'Enable Lock'}
+                    </button>
+                </div>
+
+                {/* Password Input */}
+                {isLocked && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <label className="text-xs font-bold uppercase text-gray-400">Set Secret Key</label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Enter a secure key to lock this file..."
+                                className="w-full bg-gray-900 border-2 border-gray-700 rounded p-3 text-white focus:border-yellow-300 focus:outline-none font-mono"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-3 text-gray-500 hover:text-white"
+                            >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-gray-400">
+                            * You must accept/share this key with buyers manually. It is not stored on the blockchain.
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            {/* Dropzone */}
             <div
-                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                    ? 'border-blue-500 bg-blue-50'
+                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all ${dragActive
+                    ? 'border-orange-500 bg-orange-50'
                     : 'border-gray-300 hover:border-gray-400'
                     } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
                 onDragEnter={handleDrag}
@@ -118,40 +181,27 @@ export function FileUpload({ onUploadComplete, accept, maxSize = 100 }: FileUplo
                     className="cursor-pointer"
                 >
                     {uploading ? (
-                        <div className="space-y-2">
-                            <div className="text-blue-600 font-medium">
-                                Uploading to IPFS...
+                        <div className="space-y-4">
+                            <div className="text-orange-600 font-bold uppercase animate-pulse">
+                                {isLocked ? 'Encrypting & Uploading...' : 'Uploading to IPFS...'}
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden border border-gray-300">
                                 <div
-                                    className="bg-blue-600 h-2 rounded-full transition-all"
+                                    className="bg-orange-500 h-full transition-all duration-300"
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            <svg
-                                className="mx-auto h-12 w-12 text-gray-400"
-                                stroke="currentColor"
-                                fill="none"
-                                viewBox="0 0 48 48"
-                            >
-                                <path
-                                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                    strokeWidth={2}
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
                             <div className="text-gray-600">
-                                <span className="font-medium text-blue-600 hover:text-blue-500">
-                                    Click to upload
+                                <span className="font-black text-orange-600 hover:text-orange-700 underline decoration-2 underline-offset-2">
+                                    CHOOSE FILE
                                 </span>
                                 {' '}or drag and drop
                             </div>
-                            <p className="text-xs text-gray-500">
-                                Max file size: {maxSize}MB
+                            <p className="text-xs font-bold uppercase text-gray-400">
+                                Max size: {maxSize}MB
                             </p>
                         </div>
                     )}
@@ -159,8 +209,8 @@ export function FileUpload({ onUploadComplete, accept, maxSize = 100 }: FileUplo
             </div>
 
             {error && (
-                <div className="mt-2 text-sm text-red-600">
-                    {error}
+                <div className="mt-2 text-sm font-bold text-red-600 bg-red-50 p-3 rounded border border-red-200">
+                    ⚠️ {error}
                 </div>
             )}
         </div>

@@ -1,4 +1,7 @@
-// Simple in-memory storage for demo purposes
+import fs from 'fs';
+import path from 'path';
+
+// Simple in-memory storage with JSON persistence for demo purposes
 // In production, this would be a real database
 
 interface StoredContent {
@@ -13,13 +16,59 @@ interface StoredContent {
     isActive: boolean;
 }
 
+const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_FILE = path.join(DATA_DIR, 'content.json');
+
 class ContentStore {
     private contents: Map<number, StoredContent> = new Map();
     private nextId: number = 1;
 
     constructor() {
-        // Add sample content for demo
+        this.loadData();
+    }
+
+    private loadData() {
+        try {
+            // Ensure data directory exists
+            if (!fs.existsSync(DATA_DIR)) {
+                fs.mkdirSync(DATA_DIR, { recursive: true });
+            }
+
+            if (fs.existsSync(DATA_FILE)) {
+                const rawData = fs.readFileSync(DATA_FILE, 'utf-8');
+                const data = JSON.parse(rawData);
+
+                if (Array.isArray(data)) {
+                    this.contents = new Map();
+                    let maxId = 0;
+
+                    data.forEach((item: any) => {
+                        // Rehydrate dates
+                        item.createdAt = new Date(item.createdAt);
+                        this.contents.set(item.contentId, item);
+                        if (item.contentId > maxId) maxId = item.contentId;
+                    });
+
+                    this.nextId = maxId + 1;
+                    console.log(`✅ Loaded ${this.contents.size} content items from storage`);
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load data, starting fresh:', error);
+        }
+
+        // If load failed or no file, initialize samples
         this.initializeSampleContent();
+    }
+
+    private saveData() {
+        try {
+            const data = Array.from(this.contents.values());
+            fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+        } catch (error) {
+            console.error('Failed to save data:', error);
+        }
     }
 
     private initializeSampleContent() {
@@ -41,7 +90,7 @@ class ContentStore {
             metadataUri: 'https://gateway.pinata.cloud/ipfs/QmPtAet3F8axXGts5UKPtf6mJ4RGiz4o29EKpxkEVtMadG'
         });
 
-        console.log('✅ Initialized with 2 sample content items');
+        console.log('✅ Initialized with sample content');
     }
 
     addContent(data: Omit<StoredContent, 'contentId' | 'createdAt' | 'isActive'>): number {
@@ -54,6 +103,7 @@ class ContentStore {
         };
         this.contents.set(contentId, content);
         console.log(`✅ Stored content #${contentId}:`, content);
+        this.saveData();
         return contentId;
     }
 
@@ -83,6 +133,7 @@ class ContentStore {
 
         this.contents.delete(contentId);
         console.log(`🗑️ Content #${contentId} deleted by creator`);
+        this.saveData();
         return true;
     }
 
@@ -99,6 +150,7 @@ class ContentStore {
 
         content.isActive = false;
         console.log(`⏸️ Content #${contentId} deactivated by creator`);
+        this.saveData();
         return true;
     }
 

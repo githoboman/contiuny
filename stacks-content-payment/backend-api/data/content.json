@@ -1,0 +1,22 @@
+[
+  {
+    "creator": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+    "ipfsHash": "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+    "priceStx": 500000,
+    "metadataUri": "https://gateway.pinata.cloud/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+    "priceToken": 100,
+    "tokenContract": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.usdcx",
+    "contentId": 1,
+    "createdAt": "2026-01-25T21:52:17.281Z",
+    "isActive": true
+  },
+  {
+    "creator": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+    "ipfsHash": "QmPtAet3F8axXGts5UKPtf6mJ4RGiz4o29EKpxkEVtMadG",
+    "priceStx": 1000000,
+    "metadataUri": "https://gateway.pinata.cloud/ipfs/QmPtAet3F8axXGts5UKPtf6mJ4RGiz4o29EKpxkEVtMadG",
+    "contentId": 2,
+    "createdAt": "2026-01-25T21:52:17.299Z",
+    "isActive": true
+  }
+]

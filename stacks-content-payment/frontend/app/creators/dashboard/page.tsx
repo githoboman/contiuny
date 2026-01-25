@@ -117,9 +117,6 @@ export default function CreatorDashboard() {
                         <TabsTrigger value="my-content" className="data-[state=active]:bg-cyan-400 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             📚 My Content
                         </TabsTrigger>
-                        <TabsTrigger value="earnings" className="data-[state=active]:bg-green-400 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
-                            💰 Earnings
-                        </TabsTrigger>
                         <TabsTrigger value="usdcx" className="data-[state=active]:bg-yellow-300 data-[state=active]:text-black bg-white neo-border neo-shadow-sm font-black uppercase tracking-wide py-3">
                             🌉 Bridge
                         </TabsTrigger>
@@ -152,8 +149,8 @@ export default function CreatorDashboard() {
                                         Upload Content File
                                     </label>
                                     <FileUpload
-                                        onUploadComplete={async (hash, gatewayUrl) => {
-                                            console.log('Upload complete:', { hash, gatewayUrl });
+                                        onUploadComplete={async (hash, gatewayUrl, isEncrypted) => {
+                                            console.log('Upload complete:', { hash, gatewayUrl, isEncrypted });
 
                                             // Auto-generate metadata JSON with rich information
                                             const metadata = {
@@ -164,7 +161,9 @@ export default function CreatorDashboard() {
                                                 ipfsHash: hash,
                                                 preview: gatewayUrl, // Use the uploaded file as preview
                                                 createdAt: new Date().toISOString(),
-                                                tags: ['premium', 'exclusive', 'digital-content']
+                                                tags: ['premium', 'exclusive', 'digital-content'],
+                                                // Add encryption flag to metadata if locked
+                                                encrypted: isEncrypted
                                             };
 
                                             // Upload metadata to IPFS
@@ -332,23 +331,6 @@ export default function CreatorDashboard() {
                         <div className="bg-white neo-border neo-shadow p-8">
                             <h2 className="text-3xl font-black mb-6 uppercase">My Content Library</h2>
                             <MyContentList address={address || ''} />
-                        </div>
-                    </TabsContent>
-
-                    {/* Earnings Tab */}
-                    <TabsContent value="earnings">
-                        <div className="bg-white neo-border neo-shadow p-8">
-                            <h2 className="text-3xl font-black mb-6 uppercase">💰 Earnings Report</h2>
-                            <div className="space-y-4">
-                                <div className="p-8 bg-green-400 neo-border neo-shadow-sm">
-                                    <h3 className="text-lg font-black text-black mb-2 uppercase">Total Revenue</h3>
-                                    <p className="text-5xl font-black text-black">Coming Soon</p>
-                                    <div className="mt-4 flex gap-2">
-                                        <span className="bg-black text-white px-2 py-1 text-xs font-bold uppercase">STX Validated</span>
-                                        <span className="bg-white text-black px-2 py-1 text-xs font-bold uppercase border-2 border-black">USDCx Ready</span>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </TabsContent>
 

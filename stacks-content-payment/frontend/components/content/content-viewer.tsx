@@ -1,7 +1,6 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { FileText, Download, ExternalLink } from 'lucide-react';
+import { FileText, Download, ExternalLink, Lock, Unlock, Key } from 'lucide-react';
+import { decryptFile } from '@/lib/encryption';
 
 interface ContentViewerProps {
     ipfsHash: string;
@@ -11,18 +10,54 @@ interface ContentViewerProps {
 export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
     const [contentType, setContentType] = useState<string>('unknown');
     const [loading, setLoading] = useState(true);
+    const [contentUrl, setContentUrl] = useState<string>(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
 
-    // Construct IPFS gateway URL
-    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+    // Privacy State
+    const [isLocked, setIsLocked] = useState(false);
+    const [password, setPassword] = useState('');
+    const [unlocking, setUnlocking] = useState(false);
+    const [unlockError, setUnlockError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Detect content type from file extension or fetch headers
-        detectContentType();
-    }, [ipfsHash]);
+        checkStatus();
+        return () => {
+            // Cleanup blob URLs if we created any
+            if (contentUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(contentUrl);
+            }
+        };
+    }, [ipfsHash, metadataUri]);
 
-    const detectContentType = async () => {
+    const checkStatus = async () => {
+        setLoading(true);
         try {
-            const response = await fetch(ipfsUrl, { method: 'HEAD' });
+            // 1. Check metadata for encryption flag
+            let isEncrypted = false;
+            if (metadataUri) {
+                try {
+                    const res = await fetch(metadataUri);
+                    const meta = await res.json();
+                    if (meta.encrypted) {
+                        isEncrypted = true;
+                        setIsLocked(true);
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch metadata for encryption check:', e);
+                }
+            }
+
+            // 2. If not known to be encrypted, try to detect type normally
+            if (!isEncrypted) {
+                await detectContentType(contentUrl);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const detectContentType = async (url: string) => {
+        try {
+            const response = await fetch(url, { method: 'HEAD' });
             const type = response.headers.get('content-type') || '';
 
             if (type.startsWith('image/')) {
@@ -43,8 +78,49 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
         } catch (error) {
             console.error('Failed to detect content type:', error);
             setContentType('download');
+        }
+    };
+
+    const handleUnlock = async () => {
+        if (!password) {
+            setUnlockError('Please enter the secret key');
+            return;
+        }
+
+        setUnlocking(true);
+        setUnlockError(null);
+
+        try {
+            // 1. Fetch the encrypted blob
+            const response = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
+            if (!response.ok) throw new Error('Failed to fetch encrypted content');
+            const encryptedBlob = await response.blob();
+
+            // 2. Decrypt
+            const decryptedBuffer = await decryptFile(encryptedBlob, password);
+
+            // 3. Create a Blob from the decrypted data
+            // We deduce type from original name if possible, or just guess. 
+            // For now, let's try to detect it or default to octet-stream.
+            // But actually, we just need a blob to display.
+            const decryptedBlob = new Blob([decryptedBuffer]);
+
+            // 4. Create Object URL
+            const decryptedUrl = URL.createObjectURL(decryptedBlob);
+
+            setContentUrl(decryptedUrl);
+            setIsLocked(false);
+
+            // 5. Detect type of decrypted content
+            // We can pass the blob directly if we refactor detect, but URL works fine
+            // We might need to guess the type better.
+            await detectContentType(decryptedUrl);
+
+        } catch (err) {
+            console.error('Unlock failed:', err);
+            setUnlockError('Incorrect key or corrupted file.');
         } finally {
-            setLoading(false);
+            setUnlocking(false);
         }
     };
 
@@ -56,6 +132,47 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
         );
     }
 
+    if (isLocked) {
+        return (
+            <div className="bg-black text-white rounded-lg p-8 neo-border flex flex-col items-center justify-center min-h-[300px] text-center space-y-6">
+                <Lock className="w-16 h-16 text-yellow-300 mx-auto" />
+                <div>
+                    <h3 className="text-2xl font-black uppercase mb-2">Restricted Access</h3>
+                    <p className="text-gray-400">This content is locked by the creator.</p>
+                </div>
+
+                <div className="w-full max-w-sm space-y-4">
+                    <div className="relative">
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter Secret Key..."
+                            className="w-full bg-gray-900 border-2 border-gray-700 rounded p-4 text-white focus:border-yellow-300 focus:outline-none font-mono text-center text-lg"
+                        />
+                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                    </div>
+
+                    {unlockError && (
+                        <p className="text-red-500 font-bold bg-red-900/30 p-2 rounded">{unlockError}</p>
+                    )}
+
+                    <button
+                        onClick={handleUnlock}
+                        disabled={unlocking}
+                        className="w-full py-3 bg-yellow-300 text-black font-black uppercase neo-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50"
+                    >
+                        {unlocking ? 'Unlocking...' : 'Unlock Content'}
+                    </button>
+
+                    <p className="text-xs text-gray-500">
+                        * Verify the key with the content creator before purchasing.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
             {/* Content Display */}
@@ -63,7 +180,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
                 {contentType === 'image' && (
                     <div className="relative w-full">
                         <img
-                            src={ipfsUrl}
+                            src={contentUrl}
                             alt="Content"
                             className="w-full h-auto max-h-[600px] object-contain mx-auto"
                             onError={() => setContentType('download')}
@@ -74,7 +191,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
                 {contentType === 'pdf' && (
                     <div className="h-[600px] w-full">
                         <iframe
-                            src={ipfsUrl}
+                            src={contentUrl}
                             className="w-full h-full border-0"
                             title="PDF Viewer"
                         />
@@ -85,7 +202,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
                     <video
                         controls
                         className="w-full max-h-[600px]"
-                        src={ipfsUrl}
+                        src={contentUrl}
                     >
                         Your browser does not support video playback.
                     </video>
@@ -96,7 +213,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
                         <audio
                             controls
                             className="w-full"
-                            src={ipfsUrl}
+                            src={contentUrl}
                         >
                             Your browser does not support audio playback.
                         </audio>
@@ -106,7 +223,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
                 {contentType === 'text' && (
                     <div className="p-6 w-full max-h-[600px] overflow-auto">
                         <pre className="whitespace-pre-wrap font-mono text-sm bg-white p-4 rounded border">
-                            <TextContent url={ipfsUrl} />
+                            <TextContent url={contentUrl} />
                         </pre>
                     </div>
                 )}
@@ -121,7 +238,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
                             This content cannot be previewed directly here. You can view it in the gateway or download it.
                         </p>
                         <a
-                            href={ipfsUrl}
+                            href={contentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
@@ -136,7 +253,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
             {/* Action Buttons */}
             <div className="flex gap-3">
                 <a
-                    href={ipfsUrl}
+                    href={contentUrl}
                     download
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 text-white font-black uppercase neo-border neo-shadow hover:bg-orange-600 transition"
                 >
@@ -144,7 +261,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
                     Download
                 </a>
                 <a
-                    href={ipfsUrl}
+                    href={contentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white neo-border neo-shadow font-black uppercase hover:bg-gray-50 transition"
@@ -157,7 +274,7 @@ export function ContentViewer({ ipfsHash, metadataUri }: ContentViewerProps) {
             {/* IPFS Info */}
             <div className="text-xs text-gray-500 font-mono bg-gray-100 p-3 rounded neo-border">
                 <p className="mb-1"><strong>IPFS Hash:</strong> {ipfsHash}</p>
-                <p><strong>Gateway:</strong> {ipfsUrl}</p>
+                <p><strong>Gateway:</strong> {`https://gateway.pinata.cloud/ipfs/${ipfsHash}`}</p>
             </div>
         </div>
     );
