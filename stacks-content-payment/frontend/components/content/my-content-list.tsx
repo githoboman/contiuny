@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash2, Eye, DollarSign } from 'lucide-react';
-import { formatStx, formatUsd } from '@/lib/utils';
+import { Trash2, Eye, DollarSign, ExternalLink } from 'lucide-react';
+import { formatStx, formatUsd, shortenAddress } from '@/lib/utils';
 
 interface CreatorContent {
     contentId: number;
@@ -18,6 +18,104 @@ interface CreatorContent {
 
 interface MyContentListProps {
     address: string;
+}
+
+// Inner component to handle individual item state (metadata fetching)
+function ContentListItem({ item, onDelete, isDeleting }: {
+    item: CreatorContent;
+    onDelete: (id: number) => void;
+    isDeleting: boolean;
+}) {
+    const [title, setTitle] = useState<string>(`Content #${item.contentId}`);
+    const [loadingMetadata, setLoadingMetadata] = useState(true);
+
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                if (!item.metadataUri) return;
+
+                const response = await fetch(item.metadataUri);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.title) {
+                        setTitle(data.title);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch metadata for item', item.contentId);
+            } finally {
+                setLoadingMetadata(false);
+            }
+        };
+
+        fetchMetadata();
+    }, [item.metadataUri, item.contentId]);
+
+    return (
+        <div className="bg-white neo-border neo-shadow p-4 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                {/* Content Info */}
+                <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <h3 className={`text-lg font-black ${loadingMetadata ? 'animate-pulse bg-gray-200 text-transparent rounded' : ''}`}>
+                            {title}
+                        </h3>
+                        {item.isActive ? (
+                            <span className="px-2 py-0.5 bg-green-400 text-black text-xs font-bold uppercase neo-border">
+                                Active
+                            </span>
+                        ) : (
+                            <span className="px-2 py-0.5 bg-gray-300 text-black text-xs font-bold uppercase neo-border">
+                                Inactive
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                            <span className="font-bold">
+                                {formatStx(item.priceStx)}
+                                {item.priceToken && (
+                                    <span className="text-gray-500 ml-1">
+                                        or {formatUsd(item.priceToken)}
+                                    </span>
+                                )}
+                            </span>
+                        </div>
+
+                        <p className="text-gray-500 text-xs flex items-center gap-1">
+                            <span>Created: {new Date(item.createdAt).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>ID: {item.contentId}</span>
+                        </p>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2 sm:self-center">
+                    <a
+                        href={`/content/${item.contentId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 bg-cyan-400 text-black neo-border neo-shadow font-black uppercase text-sm hover:bg-cyan-500 transition flex items-center gap-2"
+                        title="View Public Page"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                        View
+                    </a>
+                    <button
+                        onClick={() => onDelete(item.contentId)}
+                        disabled={isDeleting}
+                        className="px-3 py-2 bg-red-500 text-white neo-border neo-shadow font-black uppercase text-sm hover:bg-red-600 transition disabled:opacity-50 flex items-center gap-2"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        {isDeleting ? '...' : 'Delete'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export function MyContentList({ address }: MyContentListProps) {
@@ -63,7 +161,6 @@ export function MyContentList({ address }: MyContentListProps) {
             if (data.success) {
                 // Remove from list
                 setContent(prev => prev.filter(c => c.contentId !== contentId));
-                alert('Content deleted successfully!');
             } else {
                 alert(`Failed to delete: ${data.error}`);
             }
@@ -85,9 +182,9 @@ export function MyContentList({ address }: MyContentListProps) {
 
     if (content.length === 0) {
         return (
-            <div className="text-center p-12 bg-gray-50 neo-border">
-                <p className="text-gray-600 font-bold mb-2">No content yet</p>
-                <p className="text-sm text-gray-500">Upload your first content using the Register tab above</p>
+            <div className="text-center p-12 bg-gray-50 neo-border border-dashed">
+                <p className="text-gray-600 font-bold mb-2 text-lg">No content yet</p>
+                <p className="text-sm text-gray-500">Upload your first digital product using the Register tab above.</p>
             </div>
         );
     }
@@ -95,62 +192,12 @@ export function MyContentList({ address }: MyContentListProps) {
     return (
         <div className="space-y-4">
             {content.map((item) => (
-                <div key={item.contentId} className="bg-white neo-border neo-shadow p-4">
-                    <div className="flex items-start justify-between gap-4">
-                        {/* Content Info */}
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-lg font-black">Content #{item.contentId}</h3>
-                                {item.isActive ? (
-                                    <span className="px-2 py-0.5 bg-green-400 text-black text-xs font-bold uppercase neo-border">
-                                        Active
-                                    </span>
-                                ) : (
-                                    <span className="px-2 py-0.5 bg-gray-300 text-black text-xs font-bold uppercase neo-border">
-                                        Inactive
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="space-y-1 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <DollarSign className="w-4 h-4" />
-                                    <span className="font-bold">
-                                        {formatStx(item.priceStx)}
-                                        {item.priceToken && ` or ${formatUsd(item.priceToken)}`}
-                                    </span>
-                                </div>
-                                <p className="text-gray-600 font-mono text-xs">
-                                    IPFS: {item.ipfsHash.slice(0, 20)}...
-                                </p>
-                                <p className="text-gray-500 text-xs">
-                                    Created: {new Date(item.createdAt).toLocaleDateString()}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                            <a
-                                href={`/content/${item.contentId}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-2 bg-cyan-400 neo-border neo-shadow font-black uppercase text-sm hover:bg-cyan-500 transition flex items-center gap-2"
-                            >
-                                <Eye className="w-4 h-4" />
-                                View
-                            </a>
-                            <button
-                                onClick={() => handleDelete(item.contentId)}
-                                disabled={deleting === item.contentId}
-                                className="px-3 py-2 bg-red-500 text-white neo-border neo-shadow font-black uppercase text-sm hover:bg-red-600 transition disabled:opacity-50 flex items-center gap-2"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                                {deleting === item.contentId ? 'Deleting...' : 'Delete'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <ContentListItem
+                    key={item.contentId}
+                    item={item}
+                    onDelete={handleDelete}
+                    isDeleting={deleting === item.contentId}
+                />
             ))}
         </div>
     );

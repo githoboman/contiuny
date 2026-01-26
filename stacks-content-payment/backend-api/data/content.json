@@ -18,5 +18,16 @@
     "contentId": 2,
     "createdAt": "2026-01-25T21:52:17.299Z",
     "isActive": true
+  },
+  {
+    "creator": "ST9NSDHK5969YF6WJ2MRCVVAVTDENWBNTFJRVZ3E",
+    "ipfsHash": "QmUEarURKkwf9o3ffHHCdQxMG6UMhLQBtaXRMHMTzfTkqs",
+    "priceStx": 15000000,
+    "metadataUri": "https://gateway.pinata.cloud/ipfs/QmRBAz33dEmm9Nz9PuXX6Q7HA6EpeRLAT9uprDWgJvvVHu",
+    "priceToken": 2000000,
+    "tokenContract": "STH45SXAYXZR7ACA469PQD2YQEC678F3273KCYNM.mock-usdc",
+    "contentId": 3,
+    "createdAt": "2026-01-25T23:38:53.524Z",
+    "isActive": true
   }
 ]

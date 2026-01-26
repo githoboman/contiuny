@@ -1,0 +1,32 @@
+[
+  {
+    "contentId": 2,
+    "buyer": "ST9NSDHK5969YF6WJ2MRCVVAVTDENWBNTFJRVZ3E",
+    "creator": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+    "amount": 1000000,
+    "currency": "STX",
+    "txId": "7c5961738437c7026cbf2e50fafbfefe5a7c36f5325c1f74a24cddeff9d580f5",
+    "paymentId": 1,
+    "timestamp": "2026-01-25T23:11:30.560Z"
+  },
+  {
+    "contentId": 1,
+    "buyer": "ST9NSDHK5969YF6WJ2MRCVVAVTDENWBNTFJRVZ3E",
+    "creator": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+    "amount": 500000,
+    "currency": "STX",
+    "txId": "91ee3f65b24150117dddea95b8516d295742ee55ab7fedd1d603a3c09d6fa845",
+    "paymentId": 2,
+    "timestamp": "2026-01-25T23:37:20.481Z"
+  },
+  {
+    "contentId": 3,
+    "buyer": "STH45SXAYXZR7ACA469PQD2YQEC678F3273KCYNM",
+    "creator": "ST9NSDHK5969YF6WJ2MRCVVAVTDENWBNTFJRVZ3E",
+    "amount": 15000000,
+    "currency": "STX",
+    "txId": "ad82195f04c52fb779b972ebf48fa651f5c228268791d1c15f84cc24ced6895c",
+    "paymentId": 3,
+    "timestamp": "2026-01-26T00:01:18.018Z"
+  }
+]

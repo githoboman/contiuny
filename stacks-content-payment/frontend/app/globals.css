@@ -2,11 +2,18 @@
 
 :root {
   --background: #FAFAFA;
-  --foreground: #0A0A0A;
-  --accent-orange: #FF6B35;
+  --foreground: #000000;
+  --primary-orange: #FF6B00;
+  --accent-orange: #FF8533;
+  --dark-orange: #CC5500;
+  --primary-black: #000000;
+  --border-color: #000000;
+  --shadow-color: #000000;
+
+  /* Legacy/Other accents */
   --accent-cyan: #00D9FF;
-  --accent-yellow: #FFD23F;
   --accent-pink: #FF006E;
+  --accent-yellow: #FFD23F;
 }
 
 @theme inline {
@@ -55,9 +62,11 @@ body {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -74,7 +83,7 @@ body {
 
 /* Grid pattern background */
 .grid-bg {
-  background-image: 
+  background-image:
     linear-gradient(to right, #E5E5E5 1px, transparent 1px),
     linear-gradient(to bottom, #E5E5E5 1px, transparent 1px);
   background-size: 40px 40px;

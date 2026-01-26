@@ -3,8 +3,11 @@
 import { Content } from '@/types';
 import { formatStx, formatUsd } from '@/lib/utils';
 import Link from 'next/link';
-import { FileText, User, DollarSign } from 'lucide-react';
+import { User, DollarSign } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { NeoCard } from '@/components/ui/neo-card';
+import { NeoButton } from '@/components/ui/neo-button';
+import { NeoBadge } from '@/components/ui/neo-badge';
 
 interface ContentCardProps {
     content: Content;
@@ -24,35 +27,33 @@ export function ContentCard({ content }: ContentCardProps) {
 
     useEffect(() => {
         // Fetch metadata from IPFS
+        const fetchMetadata = async () => {
+            try {
+                if (!metadata.metadataUri) return;
+                const response = await fetch(metadata.metadataUri);
+
+                if (!response.ok) {
+                    setLoading(false);
+                    return;
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    setLoading(false);
+                    return;
+                }
+
+                const data = await response.json();
+                setMetadataInfo(data);
+            } catch (error) {
+                console.warn('Failed to fetch metadata:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchMetadata();
     }, [metadata.metadataUri]);
-
-    const fetchMetadata = async () => {
-        try {
-            const response = await fetch(metadata.metadataUri);
-
-            if (!response.ok) {
-                console.warn('Failed to fetch metadata:', response.status);
-                setLoading(false);
-                return;
-            }
-
-            // Check if response is actually JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                console.warn('Metadata URI returned non-JSON response');
-                setLoading(false);
-                return;
-            }
-
-            const data = await response.json();
-            setMetadataInfo(data);
-        } catch (error) {
-            console.warn('Failed to fetch metadata:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const title = metadataInfo.title || `Premium Content #${contentId}`;
     const description = metadataInfo.description || "Exclusive digital content available for purchase";
@@ -60,63 +61,89 @@ export function ContentCard({ content }: ContentCardProps) {
     const preview = metadataInfo.preview || `https://gateway.pinata.cloud/ipfs/${metadata.ipfsHash}`;
 
     return (
-        <Link href={`/content/${contentId}`}>
-            <div className="neo-border neo-shadow bg-white hover:translate-x-1 hover:translate-y-1 hover:neo-shadow-sm transition-all cursor-pointer overflow-hidden">
-                {/* Preview Banner */}
-                <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-300 overflow-hidden">
-                    <img
-                        src={preview}
-                        alt={title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                            // Fallback to gradient if image fails to load
-                            e.currentTarget.style.display = 'none';
-                        }}
-                    />
-                    {/* Overlay gradient for better text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        <NeoCard className="p-0 overflow-hidden flex flex-col h-full group">
+            {/* Preview Banner */}
+            <Link href={`/content/${contentId}`} className="block relative h-56 bg-gradient-to-br from-gray-200 to-gray-300 overflow-hidden border-b-4 border-black">
+                <img
+                    src={preview}
+                    alt={title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                    }}
+                />
 
-                    {/* Status badge */}
-                    {metadata.isActive && (
-                        <div className="absolute top-3 right-3">
-                            <span className="inline-block px-3 py-1 bg-green-400 text-black text-xs font-bold uppercase neo-border">
-                                Available
-                            </span>
-                        </div>
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                {/* Badges */}
+                <div className="absolute top-3 right-3 flex flex-col gap-2">
+                    {metadata.isActive ? (
+                        <NeoBadge variant="success" animatePulse className="shadow-[4px_4px_0px_0px_#000000]">Active</NeoBadge>
+                    ) : (
+                        <NeoBadge variant="warning" className="shadow-[4px_4px_0px_0px_#000000]">Inactive</NeoBadge>
                     )}
                 </div>
 
-                {/* Content Info */}
-                <div className="p-4 space-y-3">
-                    {/* Title */}
-                    <h3 className="text-xl font-black uppercase line-clamp-2">{title}</h3>
+                <div className="absolute top-3 left-3">
+                    <NeoBadge variant="secondary" className="shadow-[4px_4px_0px_0px_#FFFFFF] border-white">
+                        #{contentId}
+                    </NeoBadge>
+                </div>
+            </Link>
 
-                    {/* Description */}
-                    <p className="text-sm text-gray-700 font-medium line-clamp-2">{description}</p>
+            {/* Content Body */}
+            <div className="p-5 flex-1 flex flex-col space-y-4 bg-white relative">
+                {/* Title */}
+                <Link href={`/content/${contentId}`} className="block flex-1">
+                    <h3 className="text-xl font-black uppercase leading-tight hover:text-[#FF6B00] transition-colors line-clamp-2">
+                        {title}
+                    </h3>
+                    <p className="text-sm text-gray-600 font-bold mt-2 line-clamp-2 leading-relaxed">
+                        {description}
+                    </p>
+                </Link>
 
-                    {/* Author */}
-                    <div className="flex items-center gap-2 text-sm">
-                        <User className="w-4 h-4" />
-                        <span className="font-bold text-gray-600">By {author}</span>
-                    </div>
-
-                    {/* Price */}
-                    <div className="flex items-center gap-2 pt-2 border-t-4 border-black">
-                        <DollarSign className="w-5 h-5" />
-                        <div className="flex-1">
-                            <div className="font-black text-lg">{formatStx(metadata.priceStx)}</div>
-                            {metadata.priceToken && (
-                                <div className="text-sm text-gray-600 font-bold">or {formatUsd(metadata.priceToken)}</div>
-                            )}
+                {/* Meta */}
+                <div className="flex items-center justify-between border-t-4 border-black pt-4">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-gray-100 p-1.5 rounded-full border-2 border-black">
+                            <User className="w-3 h-3" />
                         </div>
+                        <span className="text-xs font-black uppercase text-gray-500">
+                            {author}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Pricing & Actions */}
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-[#FF6B00]" />
+                        <div className="font-black text-2xl">
+                            {formatStx(metadata.priceStx)}
+                        </div>
+                        {metadata.priceToken && (
+                            <span className="text-xs font-bold text-gray-400 self-end mb-1">
+                                / {formatUsd(metadata.priceToken)}
+                            </span>
+                        )}
                     </div>
 
-                    {/* CTA Button */}
-                    <button className="w-full py-3 bg-black text-white font-black uppercase neo-border neo-shadow hover:bg-gray-800 transition">
-                        View & Purchase
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Link href={`/creators/${metadata.creator}`} className="w-full">
+                            <NeoButton variant="secondary" neoSize="sm" className="w-full text-xs">
+                                Profile
+                            </NeoButton>
+                        </Link>
+                        <Link href={`/content/${contentId}`} className="w-full">
+                            <NeoButton variant="primary" neoSize="sm" className="w-full text-xs border-black">
+                                Purchase
+                            </NeoButton>
+                        </Link>
+                    </div>
                 </div>
             </div>
-        </Link>
+        </NeoCard>
     );
 }

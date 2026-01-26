@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@/components/wallet/wallet-provider';
 import { api } from '@/lib/api';
 import { FileUpload } from '@/components/content/file-upload';
