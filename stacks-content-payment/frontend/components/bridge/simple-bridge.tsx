@@ -86,11 +86,11 @@ export function SimpleBridge({ onSuccess }: { onSuccess?: () => void }) {
                 functionName: 'depositToRemote',
                 args: [
                     val,
-                    ETHEREUM_CONFIG.STACKS_DOMAIN,
+                    Number(ETHEREUM_CONFIG.STACKS_DOMAIN),
                     remoteRecipient,
                     ETHEREUM_CONFIG.USDC_ADDRESS as `0x${string}`,
-                    BigInt(0),
-                    '0x',
+                    0n, // maxFee
+                    '0x', // hookData
                 ],
             });
             console.log('Deposit Tx:', hash);

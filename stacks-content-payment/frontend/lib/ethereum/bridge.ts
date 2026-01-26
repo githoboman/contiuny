@@ -115,9 +115,12 @@ export async function bridgeUsdcToStacks(
             abi: XRESERVE_ABI,
             functionName: 'depositToRemote',
             args: [
-                ETHEREUM_CONFIG.STACKS_DOMAIN,
+                amountBigInt,
+                Number(ETHEREUM_CONFIG.STACKS_DOMAIN),
                 recipientBytes32,
-                amountBigInt
+                ETHEREUM_CONFIG.USDC_ADDRESS as `0x${string}`,
+                0n, // maxFee
+                '0x' // hookData
             ],
             account,
         });

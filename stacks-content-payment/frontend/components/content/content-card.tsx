@@ -20,8 +20,16 @@ interface Metadata {
     preview?: string;
 }
 
-export function ContentCard({ content }: ContentCardProps) {
-    const { contentId, metadata } = content;
+export function ContentCard(props: ContentCardProps) {
+    const { content } = props;
+    const { metadata } = content;
+
+    // Guard against invalid/incomplete content data
+    if (!content || !metadata) {
+        return null; // Or render a fallback/skeleton
+    }
+
+    const { contentId } = content;
     const [metadataInfo, setMetadataInfo] = useState<Metadata>({});
     const [loading, setLoading] = useState(true);
 

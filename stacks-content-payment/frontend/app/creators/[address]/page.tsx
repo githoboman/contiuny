@@ -25,7 +25,7 @@ export default function CreatorProfilePage({ params }: { params: Promise<{ addre
             setLoading(true);
             const response = await api.getCreatorContent(address);
             if (response.success) {
-                setContent(response.data);
+                setContent(response.data || []);
             }
         } catch (err) {
             console.error('Error loading creator content:', err);

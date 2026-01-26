@@ -1,90 +1,90 @@
-@import "tailwindcss";
+  @import "tailwindcss";
 
-:root {
-  --background: #FAFAFA;
-  --foreground: #000000;
-  --primary-orange: #FF6B00;
-  --accent-orange: #FF8533;
-  --dark-orange: #CC5500;
-  --primary-black: #000000;
-  --border-color: #000000;
-  --shadow-color: #000000;
+  :root {
+    --background: #FAFAFA;
+    --foreground: #000000;
+    --primary-orange: #FF6B00;
+    --accent-orange: #FF8533;
+    --dark-orange: #CC5500;
+    --primary-black: #000000;
+    --border-color: #000000;
+    --shadow-color: #000000;
 
-  /* Legacy/Other accents */
-  --accent-cyan: #00D9FF;
-  --accent-pink: #FF006E;
-  --accent-yellow: #FFD23F;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-/* Neo-Brutalist Shadows */
-.neo-shadow {
-  box-shadow: 8px 8px 0px 0px #0A0A0A;
-}
-
-.neo-shadow-sm {
-  box-shadow: 4px 4px 0px 0px #0A0A0A;
-}
-
-.neo-shadow-lg {
-  box-shadow: 12px 12px 0px 0px #0A0A0A;
-}
-
-/* Hover effects */
-.neo-hover:hover {
-  transform: translate(4px, 4px);
-  box-shadow: 4px 4px 0px 0px #0A0A0A;
-}
-
-/* Bold borders */
-.neo-border {
-  border: 4px solid #0A0A0A;
-}
-
-.neo-border-thick {
-  border: 6px solid #0A0A0A;
-}
-
-/* Animated gradient text */
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
+    /* Legacy/Other accents */
+    --accent-cyan: #00D9FF;
+    --accent-pink: #FF006E;
+    --accent-yellow: #FFD23F;
   }
 
-  50% {
-    background-position: 100% 50%;
+  @theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
   }
 
-  100% {
-    background-position: 0% 50%;
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
-}
 
-.gradient-text {
-  background: linear-gradient(90deg, var(--accent-orange), var(--accent-cyan), var(--accent-pink));
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+  /* Neo-Brutalist Shadows */
+  .neo-shadow {
+    box-shadow: 8px 8px 0px 0px #0A0A0A;
+  }
 
-/* Grid pattern background */
-.grid-bg {
-  background-image:
-    linear-gradient(to right, #E5E5E5 1px, transparent 1px),
-    linear-gradient(to bottom, #E5E5E5 1px, transparent 1px);
-  background-size: 40px 40px;
-}
+  .neo-shadow-sm {
+    box-shadow: 4px 4px 0px 0px #0A0A0A;
+  }
+
+  .neo-shadow-lg {
+    box-shadow: 12px 12px 0px 0px #0A0A0A;
+  }
+
+  /* Hover effects */
+  .neo-hover:hover {
+    transform: translate(4px, 4px);
+    box-shadow: 4px 4px 0px 0px #0A0A0A;
+  }
+
+  /* Bold borders */
+  .neo-border {
+    border: 4px solid #0A0A0A;
+  }
+
+  .neo-border-thick {
+    border: 6px solid #0A0A0A;
+  }
+
+  /* Animated gradient text */
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .gradient-text {
+    background: linear-gradient(90deg, var(--accent-orange), var(--accent-cyan), var(--accent-pink));
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Grid pattern background */
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, #E5E5E5 1px, transparent 1px),
+      linear-gradient(to bottom, #E5E5E5 1px, transparent 1px);
+    background-size: 40px 40px;
+  }

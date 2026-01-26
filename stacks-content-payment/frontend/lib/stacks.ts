@@ -87,12 +87,7 @@ export const stacks = {
 
             // Connect to wallet
             console.log('Connecting to wallet...');
-            const response = await connect({
-                appDetails: {
-                    name: 'Stacks Content Payment',
-                    icon: typeof window !== 'undefined' ? `${window.location.origin}/favicon.ico` : '',
-                }
-            });
+            const response = await connect();
             console.log('Connect response structure:', response);
 
             // Handle different possible response structures

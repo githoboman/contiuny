@@ -8,6 +8,7 @@ import { NeoCard } from '@/components/ui/neo-card';
 import { NeoButton } from '@/components/ui/neo-button';
 import { NeoBadge } from '@/components/ui/neo-badge';
 import { motion } from 'framer-motion';
+import { api } from '@/lib/api';
 
 // Mock data for visualization
 const WEEKLY_DATA = [
@@ -31,18 +32,29 @@ export default function EarningsPage() {
     });
 
     useEffect(() => {
-        // Mock loading delay
-        const timer = setTimeout(() => {
-            setStats({
-                totalEarningsStx: 1250.50,
-                totalEarningsUsdc: 450.00,
-                pendingPayouts: 120.00,
-                monthEarnings: 0
-            });
-            setLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, []);
+        async function loadEarnings() {
+            if (!address) return;
+
+            try {
+                setLoading(true);
+                const response = await api.getCreatorRevenue(address);
+                setStats({
+                    totalEarningsStx: response.data?.earnings?.totalStx || 0,
+                    totalEarningsUsdc: response.data?.earnings?.totalUsdcx || 0,
+                    pendingPayouts: 0, // Not currently tracked by API
+                    monthEarnings: response.data?.totalRevenue || 0
+                });
+            } catch (err) {
+                console.error('Failed to load earnings:', err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        if (isConnected && address) {
+            loadEarnings();
+        }
+    }, [address, isConnected]);
 
     if (!isConnected) {
         return (

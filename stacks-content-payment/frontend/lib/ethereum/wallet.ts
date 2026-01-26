@@ -21,7 +21,6 @@ export const wagmiAdapter = new WagmiAdapter({
     }),
     ssr: true,
     projectId,
-    networks,
     networks
 })
 
@@ -30,28 +29,4 @@ export const config = wagmiAdapter.wagmiConfig
 // Set up QueryClient
 export const queryClient = new QueryClient()
 
-if (typeof window !== 'undefined') {
-    // Reown AppKit = WalletConnect v3 (supports 300+ wallets)
-    createAppKit({
-        adapters: [wagmiAdapter],
-        projectId,
-        networks: [sepolia],
-        defaultNetwork: sepolia,
-        metadata: {
-            name: 'Stacks Content Pay',
-            description: 'Bridge USDC to Stacks with WalletConnect',
-            url: 'https://stacks-content-pay.vercel.app',
-            icons: ['https://assets.reown.com/reown-profile-pic.png']
-        },
-        features: {
-            analytics: true,
-            email: false, // Disable email login for now
-            socials: [], // Disable social logins
-            onramp: false // Disable onramp for now
-        },
-        themeMode: 'light',
-        themeVariables: {
-            '--w3m-accent': '#22c55e' // Match your brand colors
-        }
-    })
-}
+// AppKit initialization moved to ReownProvider to ensure client-side execution

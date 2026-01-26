@@ -4,17 +4,11 @@ import { useWallet } from './wallet-provider';
 import { formatStx, shortenAddress } from '@/lib/utils';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
-import { Wallet, ChevronDown } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { useUsdcxBalance } from '@/lib/hooks/useTokenBalance';
-
-import { useWallet } from './wallet-provider';
-import { formatStx, shortenAddress } from '@/lib/utils';
-import { useAccount, useDisconnect } from 'wagmi';
-import { useAppKit } from '@reown/appkit/react';
 import { Wallet, ChevronDown, LogOut } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useUsdcxBalance } from '@/lib/hooks/useTokenBalance';
+
+
 import { NeoButton } from '../ui/neo-button';
 import { NeoCard } from '../ui/neo-card';
 import { NeoBadge } from '../ui/neo-badge';

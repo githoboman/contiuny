@@ -9,7 +9,9 @@ function cn(...inputs: ClassValue[]) {
 }
 
 interface NeoButtonProps extends HTMLMotionProps<"button"> {
-    variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+    children: React.ReactNode;
+    className?: string;
+    variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'dark';
     neoSize?: 'sm' | 'md' | 'lg';
 }
 
@@ -25,6 +27,7 @@ export function NeoButton({
         primary: "bg-[#FF6B00] text-black border-black hover:bg-[#FF8533]",
         secondary: "bg-white text-black border-black hover:bg-gray-50",
         danger: "bg-black text-[#FF6B00] border-[#FF6B00]",
+        dark: "bg-black text-white border-black hover:bg-gray-800",
         ghost: "bg-transparent text-black border-transparent shadow-none hover:bg-gray-100 border-0"
     };
 
