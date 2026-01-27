@@ -119,7 +119,7 @@ export async function bridgeUsdcToStacks(
                 Number(ETHEREUM_CONFIG.STACKS_DOMAIN),
                 recipientBytes32,
                 ETHEREUM_CONFIG.USDC_ADDRESS as `0x${string}`,
-                0n, // maxFee
+                BigInt(0), // maxFee
                 '0x' // hookData
             ],
             account,

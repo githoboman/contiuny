@@ -23,11 +23,11 @@ async function main() {
             abi: ABI,
             functionName: 'depositToRemote',
             args: [
-                1000000n, // value
+                BigInt(1000000), // value
                 10003,    // remoteDomain
                 '0x00000000000000000000001a2242e7aaf77f83a98a21936bb45ebb9863a1e311', // remoteRecipient
                 USDC_ADDRESS, // localToken
-                0n,       // maxFee
+                BigInt(0),       // maxFee
                 '0x'      // hookData
             ],
             account: sender,
