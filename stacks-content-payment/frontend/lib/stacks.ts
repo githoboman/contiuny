@@ -101,9 +101,22 @@ export const stacks = {
                 }
             }
 
-            // Try format 2: response.addresses[0].address (array format)
+            // Try format 2: response.addresses array (find STX address)
             if (!address && Array.isArray(response?.addresses) && response.addresses.length > 0) {
-                address = response.addresses[0].address;
+                const stxAccount = response.addresses.find((addr: any) =>
+                    // Check for explicit type/symbol if available
+                    (addr.type === 'stx' || addr.symbol === 'STX') ||
+                    // Fallback: Check address prefix (ST=Testnet, SP/SM=Mainnet)
+                    (typeof addr.address === 'string' && (
+                        addr.address.startsWith('ST') ||
+                        addr.address.startsWith('SP') ||
+                        addr.address.startsWith('SM')
+                    ))
+                );
+
+                if (stxAccount) {
+                    address = stxAccount.address;
+                }
             }
 
             if (address) {
