@@ -151,7 +151,7 @@ export function SimpleBridge({ onSuccess }: { onSuccess?: () => void }) {
                             whileHover={{ rotate: 180 }}
                             onClick={() => console.log("Swap not implemented yet")}
                         >
-                            <ArrowLeftRight className="w-6 h-6" />
+                            <ArrowRight className="w-6 h-6 rotate-90 md:rotate-0" />
                         </motion.div>
 
                         {/* To Network */}
@@ -183,7 +183,7 @@ export function SimpleBridge({ onSuccess }: { onSuccess?: () => void }) {
                             onChange={(e) => setAmount(e.target.value)}
                             type="number"
                             placeholder="0.00"
-                            className="text-4xl h-20 px-6 font-black"
+                            className="text-2xl md:text-4xl h-20 px-6 font-black"
                         />
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
                             <span className="font-black text-xl text-gray-400">USDC</span>

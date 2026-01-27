@@ -87,7 +87,12 @@ export const stacks = {
 
             // Connect to wallet
             console.log('Connecting to wallet...');
-            const response = await connect();
+            const response = await connect({
+                appDetails: {
+                    name: 'COSTAXR',
+                    icon: 'https://costaxr.vercel.app/icon.png', // Ensure this image exists or use a generic one
+                }
+            } as any);
             console.log('Connect response structure:', response);
 
             // Handle different possible response structures

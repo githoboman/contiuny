@@ -14,9 +14,9 @@ createAppKit({
     networks: [sepolia],
     defaultNetwork: sepolia,
     metadata: {
-        name: 'Stacks Content Pay',
-        description: 'Bridge USDC to Stacks with WalletConnect',
-        url: 'https://stacks-content-pay.vercel.app',
+        name: 'COSTAXR',
+        description: 'Decentralized Content Payments on Stacks',
+        url: 'https://costaxr.vercel.app', // MUST match your actual Vercel domain
         icons: ['https://assets.reown.com/reown-profile-pic.png']
     },
     features: {
