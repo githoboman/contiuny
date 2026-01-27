@@ -16,6 +16,12 @@ export const networks = [sepolia]
 
 // Set up Wagmi Adapter with fallback transports for better reliability
 export const wagmiAdapter = new WagmiAdapter({
+    transports: {
+        [sepolia.id]: fallback([
+            http(ETHEREUM_CONFIG.RPC_URL),
+            ...ETHEREUM_CONFIG.FALLBACK_RPC_URLS.map(url => http(url))
+        ])
+    },
     storage: createStorage({
         storage: cookieStorage
     }),
