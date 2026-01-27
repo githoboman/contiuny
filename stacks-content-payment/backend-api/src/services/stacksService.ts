@@ -167,7 +167,7 @@ export class StacksService {
 
             if (!response.ok) return false;
 
-            const data = await response.json();
+            const data = await response.json() as any;
             const transactions = data.results;
 
             // Look for matching transaction
