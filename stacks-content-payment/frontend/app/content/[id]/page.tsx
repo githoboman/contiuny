@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Content } from '@/types';
 import { PaymentButton } from '@/components/content/payment-button';
 import { ContentViewer } from '@/components/content/content-viewer';
 import { useWallet } from '@/components/wallet/wallet-provider';
-import { formatStx, formatUsd } from '@/lib/utils';
+import { formatStx, formatUsd, shortenAddress } from '@/lib/utils';
 
 export default function ContentDetailPage() {
     const params = useParams();
@@ -69,43 +70,38 @@ export default function ContentDetailPage() {
                 <div className="bg-white rounded-lg shadow-lg p-8">
                     <h1 className="text-3xl font-bold mb-6">Content #{contentId}</h1>
 
-                    <div className="space-y-4 mb-8">
-                        <div>
-                            <span className="font-medium text-gray-700">Creator:</span>
-                            <p className="text-gray-900 font-mono text-sm">{metadata.creator}</p>
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="bg-gray-100 p-2 rounded-full border-2 border-black">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         </div>
-
                         <div>
-                            <span className="font-medium text-gray-700">IPFS Hash:</span>
-                            <p className="text-gray-900 font-mono text-sm">{metadata.ipfsHash}</p>
+                            <p className="text-xs font-black uppercase text-gray-500">Creator</p>
+                            <Link href={`/creators/${metadata.creator}`} className="font-bold text-lg hover:text-[#FF6B00] underline">
+                                {shortenAddress(metadata.creator)}
+                            </Link>
                         </div>
-
-                        <div>
-                            <span className="font-medium text-gray-700">Metadata URI:</span>
-                            <a
-                                href={metadata.metadataUri}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
-                            >
-                                {metadata.metadataUri}
-                            </a>
+                        <div className="ml-auto">
+                            <span className={`px-3 py-1 font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_0px_#000000] ${metadata.isActive ? 'bg-green-400 text-black' : 'bg-red-400 text-black'}`}>
+                                {metadata.isActive ? 'Active' : 'Inactive'}
+                            </span>
                         </div>
+                    </div>
 
-                        <div>
-                            <span className="font-medium text-gray-700">Price:</span>
-                            <p className="text-gray-900">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div className="bg-gray-50 border-2 border-black p-4 shadow-[4px_4px_0px_0px_#000000]">
+                            <p className="font-black uppercase text-xs text-gray-500 mb-1">Price</p>
+                            <p className="text-2xl font-black">
                                 {formatStx(metadata.priceStx)}
-                                {metadata.priceToken && ` or ${formatUsd(metadata.priceToken)}`}
+                                {metadata.priceToken && <span className="text-gray-400 text-lg ml-2">/ {formatUsd(metadata.priceToken)}</span>}
                             </p>
                         </div>
 
-                        <div>
-                            <span className="font-medium text-gray-700">Status:</span>
-                            <span className={`ml-2 px-2 py-1 rounded text-sm ${metadata.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                {metadata.isActive ? 'Active' : 'Inactive'}
-                            </span>
+                        <div className="bg-blue-50 border-2 border-black p-4 shadow-[4px_4px_0px_0px_#000000]">
+                            <p className="font-black uppercase text-xs text-gray-500 mb-1">Secure Content</p>
+                            <p className="text-sm font-bold flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                Verified & Encrypted
+                            </p>
                         </div>
                     </div>
 

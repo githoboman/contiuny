@@ -38,7 +38,15 @@ export function ContentCard(props: ContentCardProps) {
         const fetchMetadata = async () => {
             try {
                 if (!metadata.metadataUri) return;
-                const response = await fetch(metadata.metadataUri);
+
+                // Optimize IPFS URL to use Pinata Gateway
+                let url = metadata.metadataUri;
+                if (url.includes('ipfs.io') || url.startsWith('ipfs://')) {
+                    const hash = url.split('/').pop();
+                    url = `https://gateway.pinata.cloud/ipfs/${hash}`;
+                }
+
+                const response = await fetch(url);
 
                 if (!response.ok) {
                     setLoading(false);
