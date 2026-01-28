@@ -7,6 +7,8 @@ export interface ContentMetadata {
     priceToken?: number;
     tokenContract?: string;
     metadataUri: string;
+    title?: string;
+    description?: string;
     createdAt: number;
     isActive: boolean;
 }
