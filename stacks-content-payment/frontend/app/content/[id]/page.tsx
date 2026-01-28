@@ -65,10 +65,29 @@ export default function ContentDetailPage() {
     const { metadata } = content;
 
     return (
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-8 md:py-12">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-lg shadow-lg p-8">
-                    <h1 className="text-3xl font-bold mb-6">Content #{contentId}</h1>
+                {/* Back Button */}
+                <Link href="/content" className="inline-flex items-center gap-2 text-gray-500 hover:text-black font-bold uppercase text-sm mb-6 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+                    Back to Browse
+                </Link>
+
+                <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                    {/* Header with Real Title */}
+                    <div className="border-b-4 border-black pb-6 mb-8">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl md:text-5xl font-black uppercase leading-tight mb-2">
+                                    {metadata.title || `Untitled Content`}
+                                </h1>
+                                <p className="text-gray-600 text-lg font-medium">{metadata.description}</p>
+                            </div>
+                            <span className="self-start px-3 py-1 font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_0px_#000000] bg-gray-100">
+                                #{contentId}
+                            </span>
+                        </div>
+                    </div>
 
                     <div className="flex items-center gap-4 mb-8">
                         <div className="bg-gray-100 p-2 rounded-full border-2 border-black">
@@ -117,7 +136,7 @@ export default function ContentDetailPage() {
                         </div>
                     ) : (
                         <div>
-                            <h2 className="text-xl font-bold mb-4">Purchase Access</h2>
+                            <h2 className="text-xl font-bold mb-4 uppercase">Purchase Access</h2>
                             <PaymentButton
                                 contentId={contentId}
                                 priceStx={metadata.priceStx}
@@ -125,6 +144,28 @@ export default function ContentDetailPage() {
                                 tokenContract={metadata.tokenContract}
                                 onSuccess={loadContent}
                             />
+
+                            {/* Little Tutorial Walkthrough */}
+                            <div className="mt-12 pt-8 border-t-2 border-dashed border-gray-300">
+                                <h3 className="text-sm font-black uppercase text-gray-500 mb-4 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+                                    How it works
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="bg-gray-50 p-4 border-l-4 border-orange-500">
+                                        <span className="font-bold block mb-1">1. Connect Wallet</span>
+                                        <p className="text-xs text-gray-600">Connect your Stacks wallet (Leather/Xverse). Ensure you're on Testnet.</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 border-l-4 border-blue-500">
+                                        <span className="font-bold block mb-1">2. Confirm Payment</span>
+                                        <p className="text-xs text-gray-600">Click Purchase. Approve the transaction in your wallet popup.</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 border-l-4 border-green-500">
+                                        <span className="font-bold block mb-1">3. Access Instantly</span>
+                                        <p className="text-xs text-gray-600">Once confirmed (~3-5s), the content unlocks automatically right here.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

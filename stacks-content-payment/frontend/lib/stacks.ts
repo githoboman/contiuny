@@ -90,7 +90,7 @@ export const stacks = {
             const response = await connect({
                 appDetails: {
                     name: 'COSTAXR',
-                    icon: 'https://costaxr.vercel.app/icon.png', // Ensure this image exists or use a generic one
+                    icon: 'https://assets.reown.com/reown-profile-pic.png', // Using valid external PNG for compatibility
                 }
             } as any);
             console.log('Connect response structure:', response);
