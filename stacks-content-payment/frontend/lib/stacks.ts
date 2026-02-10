@@ -90,8 +90,10 @@ export const stacks = {
             const response = await connect({
                 appDetails: {
                     name: 'COSTAXR',
-                    icon: typeof window !== 'undefined' ? `${window.location.origin}/globe.svg` : 'https://costaxr.vercel.app/globe.svg',
-                }
+                    icon: 'https://assets.reown.com/reown-profile-pic.png',
+                },
+                redirectPath: '/',
+                manifestPath: '/manifest.json',
             } as any);
             console.log('Connect response structure:', response);
 
