@@ -36,6 +36,12 @@ export function Header() {
                         >
                             Bridge
                         </Link>
+                        <Link
+                            href="/chat"
+                            className="text-white font-bold uppercase text-sm hover:text-[#FF6B00] transition-colors"
+                        >
+                            Chat
+                        </Link>
                         <MultiWalletConnect />
                     </nav>
 
@@ -73,6 +79,13 @@ export function Header() {
                             onClick={() => setIsMenuOpen(false)}
                         >
                             Bridge
+                        </Link>
+                        <Link
+                            href="/chat"
+                            className="text-white font-bold uppercase text-lg hover:text-[#FF6B00] transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            Chat
                         </Link>
                         <div className="pt-4 border-t-2 border-dashed border-gray-800">
                             <MultiWalletConnect />

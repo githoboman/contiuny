@@ -29,6 +29,7 @@
     "lucide-react": "^0.562.0",
     "micro-packed": "^0.8.0",
     "next": "16.1.1",
+    "@xmtp/browser-sdk": "^6.3.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "solc": "^0.8.33",
